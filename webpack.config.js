@@ -1,7 +1,7 @@
 const path = require('path')
 const webpack = require('webpack')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
-const SveltePreprocess = require('svelte-preprocess')
+const svelteConfig = require('./svelte.config')
 
 module.exports = (env, argv) => {
   const config = {
@@ -48,7 +48,6 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.svelte$/,
-          exclude: /node_modules/,
           use: [
             {
               /**
@@ -56,11 +55,9 @@ module.exports = (env, argv) => {
                * @see https://github.com/halfnelson/svelte-native/blob/0af94fac6ea18f54f93ab299d0b512f91d722569/demo/package.json#L26
                */
               loader: 'svelte-loader',
-              options: {
-                preprocess: SveltePreprocess()
-              }
+              options: svelteConfig
             }
-          ]
+          ],
         },
         {
           // required to prevent errors from Svelte on Webpack 5+, omit on Webpack 4
@@ -68,7 +65,11 @@ module.exports = (env, argv) => {
           resolve: {
             fullySpecified: false
           }
-        }
+        },
+        {
+          test: /\.css$/,
+          use: ["style-loader", "css-loader"],
+        },
       ]
     },
     resolve: {

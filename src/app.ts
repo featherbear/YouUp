@@ -1,4 +1,5 @@
 import App from './App.svelte'
+import "carbon-components-svelte/css/all.css";
 
 const controller = {
     showInfo: () => {
