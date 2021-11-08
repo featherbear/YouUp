@@ -26,6 +26,26 @@ module.exports = (env, argv) => {
           ]
         },
         {
+          test: /\.svelte$/,
+          use: [
+            {
+              /**
+               * Note: Svelte Native uses a minor patch of svelte-loader. I'm not sure of the significance.
+               * @see https://github.com/halfnelson/svelte-native/blob/0af94fac6ea18f54f93ab299d0b512f91d722569/demo/package.json#L26
+               */
+              loader: 'svelte-loader',
+              options: svelteConfig
+            }
+          ],
+        },
+        {
+          // required to prevent errors from Svelte on Webpack 5+, omit on Webpack 4
+          test: /node_modules\/svelte\/.*\.mjs$/,
+          resolve: {
+            fullySpecified: false
+          }
+        },
+        {
           test: /\.ts$/,
           use: {
             loader: 'ts-loader',
@@ -45,26 +65,6 @@ module.exports = (env, argv) => {
         {
           test: /\.mjs$/,
           type: 'javascript/auto'
-        },
-        {
-          test: /\.svelte$/,
-          use: [
-            {
-              /**
-               * Note: Svelte Native uses a minor patch of svelte-loader. I'm not sure of the significance.
-               * @see https://github.com/halfnelson/svelte-native/blob/0af94fac6ea18f54f93ab299d0b512f91d722569/demo/package.json#L26
-               */
-              loader: 'svelte-loader',
-              options: svelteConfig
-            }
-          ],
-        },
-        {
-          // required to prevent errors from Svelte on Webpack 5+, omit on Webpack 4
-          test: /node_modules\/svelte\/.*\.mjs$/,
-          resolve: {
-            fullySpecified: false
-          }
         },
         {
           test: /\.css$/,

@@ -1,10 +1,7 @@
-<script lang="ts">
-    export let controller;
+<script>
+  export let controller;
+  import Router from "svelte-spa-router";
+  import { routes } from "./routes";
 </script>
-<h1>NeutralinoJs</h1>
-<div id="info"></div>
-<br/>
-<div>
-  <a href="#" on:click={() => controller.openDocs()}>Docs</a> &middot;  
-  <a href="#" on:click={() => controller.openTutorial()}>Tutorial</a>
-</div>
+
+<Router {routes} />

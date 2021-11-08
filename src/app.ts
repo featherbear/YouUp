@@ -57,12 +57,37 @@ Neutralino.events.on("ready", () => {
     if (NL_OS != "Darwin") { // TODO: Fix https://github.com/neutralinojs/neutralinojs/issues/615
         controller.setTray();
     }
+
+    new MutationObserver(function (mutations) {
+        console.log(mutations[0].target.nodeValue);
+    }).observe(
+        document.querySelector('title'),
+        { subtree: true, characterData: true, childList: true }
+    );
+
+    console.log(Neutralino.storage);
+
+    let windowID = window.location.hash.split('/').pop()
+    Neutralino.events.on('myTestEvent', function(){
+        console.log('pass data');
+    })
+    if (windowID) {
+        console.log('Window opened as ID', windowID);
+        // Neutralino.events.on(`ipc:${windowID}:data`, function (data) {
+        //     data = JSON.parse(data)
+        //     console.log("GOT IPC", data);
+        // })
+        Neutralino.events.dispatch(`ipc`, 'a')
+        //:${windowID}:ready`, '')
+        console.log('dispatch ', `ipc:${windowID}:ready`);
+    }
 })
+
 
 export default new App({
     target: document.getElementById('app'),
     props: { controller }
 })
 
-controller.showInfo();
+// controller.showInfo();
 
