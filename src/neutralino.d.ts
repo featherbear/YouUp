@@ -6,3 +6,4 @@ declare var NL_PORT: string;
 declare var NL_MODE: string;
 
 declare var Neutralino: any;
+

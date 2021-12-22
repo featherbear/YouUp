@@ -1,8 +1,9 @@
 {
   "applicationId": "js.neutralino.sample",
-  "defaultMode": "window",
-  "port": 0,
-  "url": "/resources/",
+  "defaultMode": "browser",
+  "port": 64573,
+  "documentRoot": "/resources/",
+  "url": "/",
   "enableServer": true,
   "enableNativeAPI": true,
   "logging": {
@@ -13,7 +14,6 @@
   "globalVariables": {
     "TEST": "Test Value"
   },
-  "enableExtensions": true,
   "modes": {
     "window": {
       "title": "you-up",
@@ -46,12 +46,6 @@
       ]
     }
   },
-  "extensions": [
-    {
-        "id": "js.neutralino.binaryextension",
-        "command": "node ${NL_PATH}/extensions/binary/main.js",
-    }
-  ],
   "cli": {
     "binaryName": "you-up",
     "resourcesPath": "/resources/",

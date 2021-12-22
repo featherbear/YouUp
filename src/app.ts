@@ -1,6 +1,7 @@
 import App from './App.svelte'
 import "carbon-components-svelte/css/all.css";
 import { sub } from './VirtualIPC';
+
 const controller = {
     showInfo: () => {
         document.getElementById('info').innerHTML = `

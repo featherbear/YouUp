@@ -15,6 +15,7 @@
   "devDependencies": {
     "@neutralinojs/neu": "^7.0.0",
     "@tsconfig/svelte": "^2.0.1",
+    "@types/gapi": "^0.0.41",
     "carbon-components-svelte": "^0.47.4",
     "carbon-preprocess-svelte": "^0.6.0",
     "css-loader": "^6.5.1",
