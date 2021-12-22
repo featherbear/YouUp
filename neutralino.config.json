@@ -13,6 +13,7 @@
   "globalVariables": {
     "TEST": "Test Value"
   },
+  "enableExtensions": true,
   "modes": {
     "window": {
       "title": "you-up",
@@ -45,6 +46,12 @@
       ]
     }
   },
+  "extensions": [
+    {
+        "id": "js.neutralino.binaryextension",
+        "command": "node ${NL_PATH}/extensions/binary/main.js",
+    }
+  ],
   "cli": {
     "binaryName": "you-up",
     "resourcesPath": "/resources/",

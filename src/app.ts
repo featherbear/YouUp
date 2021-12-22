@@ -73,6 +73,7 @@ Neutralino.events.on("ready", () => {
         })
         console.log('Subscribed to events');
     }
+    console.log("Location", window.location);
 })
 
 
