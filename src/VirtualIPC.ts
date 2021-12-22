@@ -1,7 +1,8 @@
 import { uid } from "uid";
+import type IPCTypes from "./IPCEvents";
 
 export function sub(stream: string) {
-    let cb: (data: any) => void;
+    let cb: ({ type: IPCTypes, data: any }) => void;
 
     let consumed = []
     setInterval(function () {
@@ -66,9 +67,9 @@ export function pub(stream: string) {
         })
     }, 250)
 
-    return function emit(data) {
+    return function emit(type: IPCTypes, data) {
         let id = `${stream}-${uid(20)}`
-        Neutralino.storage.setData(id, JSON.stringify(data)).then(() => {
+        Neutralino.storage.setData(id, JSON.stringify({ type, data })).then(() => {
             events = [...events, id]
             Neutralino.storage.setData(`${stream}_queue`, JSON.stringify(events))
         })

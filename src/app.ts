@@ -68,7 +68,7 @@ Neutralino.events.on("ready", () => {
     let windowID = window.location.hash.split('/').pop()
     if (windowID) {
         console.log('Window opened as ID', windowID);
-        sub(windowID)(function(data) {
+        sub(windowID)(function (data) {
             console.log('Received data', data);
         })
         console.log('Subscribed to events');

@@ -11,8 +11,8 @@
 
   function spawnWindow(path, seedData = {}) {
     let windowID = uid(20);
-
-    pub(windowID)("hello");
+    const emit = pub(windowID);
+    emit("seed", "hello!");
 
     Neutralino.window.create(`/resources/index.html#/${path}/${windowID}`);
   }
