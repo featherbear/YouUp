@@ -1,6 +1,6 @@
 import App from './App.svelte'
 import "carbon-components-svelte/css/all.css";
-
+import { sub } from './VirtualIPC';
 const controller = {
     showInfo: () => {
         document.getElementById('info').innerHTML = `
@@ -65,21 +65,13 @@ Neutralino.events.on("ready", () => {
         { subtree: true, characterData: true, childList: true }
     );
 
-    console.log(Neutralino.storage);
-
     let windowID = window.location.hash.split('/').pop()
-    Neutralino.events.on('myTestEvent', function(){
-        console.log('pass data');
-    })
     if (windowID) {
         console.log('Window opened as ID', windowID);
-        // Neutralino.events.on(`ipc:${windowID}:data`, function (data) {
-        //     data = JSON.parse(data)
-        //     console.log("GOT IPC", data);
-        // })
-        Neutralino.events.dispatch(`ipc`, 'a')
-        //:${windowID}:ready`, '')
-        console.log('dispatch ', `ipc:${windowID}:ready`);
+        sub(windowID)(function(data) {
+            console.log('Received data', data);
+        })
+        console.log('Subscribed to events');
     }
 })
 

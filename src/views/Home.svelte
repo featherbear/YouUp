@@ -7,30 +7,14 @@
 
   import { uid } from "uid";
 
-  function once(target, eventName, callback) {
-    let fn = function () {
-      console.log("Callback for", eventName);
-      callback.apply(this, arguments);
-      target.off(eventName, fn);
-    };
-
-    console.log("setup for", eventName, fn);
-    target.on(eventName, fn);
-  }
+  import { pub, sub } from "../VirtualIPC";
 
   function spawnWindow(path, seedData = {}) {
     let windowID = uid(20);
-    Neutralino.window.create(`/resources/index.html#/${path}/${windowID}`);
 
-    Neutralino.events.on(`ipc`, function () {
-      console.log("base");
-    });
-    once(Neutralino.events, `ipc:${windowID}:ready`, function () {
-      Neutralino.events.dispatch(
-        `ipc:${windowID}:data`,
-        JSON.stringify(seedData)
-      );
-    });
+    pub(windowID)("hello");
+
+    Neutralino.window.create(`/resources/index.html#/${path}/${windowID}`);
   }
 </script>
 
@@ -48,11 +32,7 @@
 
 <Button
   on:click={() => {
-      Neutralino.events.on('myTestEvent', function(){
-          console.log('pass data');
-      })
-      Neutralino.events.dispatch('myTestEvent', {myData: 'Test data'});
-    spawnWindow("upload", { data: "aa" });
+    spawnWindow("upload", { data: "aaf" });
   }}>Change View</Button
 >
 
