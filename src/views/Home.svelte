@@ -6,12 +6,12 @@
   } from "carbon-components-svelte";
 
   import { uid } from "uid";
-  import { createAuthChallenge } from "../youtube";
-
+  import { authStore } from "../youtube";
+  import * as youtube from "../youtube";
   import { pub, sub } from "../VirtualIPC";
+  import { AUTH_STORAGE_KEY } from "../consts/auth";
 
-  // gapi.load("client", function () {
-  // });
+  console.log($authStore);
 
   function spawnWindow(path, seedData = {}) {
     let windowID = uid(20);
@@ -48,6 +48,17 @@
 
     // Neutralino.window.create(`/resources/index.html#/${path}/${windowID}`);
   }
+  youtube.init().then(() => {
+    console.log("YouTube API Loaded");
+  });
+
+  function doRequest() {
+    youtube.withYoutube((c) => {
+      c.playlists.list({ mine: true }).then(function (a, b, c) {
+        console.log(a, b, c);
+      });
+    });
+  }
 </script>
 
 <svelte:head>
@@ -58,6 +69,7 @@
 <div id="info" />
 <br />
 <div>
+  {JSON.stringify($authStore)}
   <!-- <a href="#" on:click={() => controller.openDocs()}>Docs</a> &middot;
   <a href="#" on:click={() => controller.openTutorial()}>Tutorial</a> &middot; -->
 </div>
@@ -65,7 +77,13 @@
 <Button
   on:click={() => {
     spawnWindow("upload", { data: "aaf" });
-  }}>Change View</Button
+  }}>Authenticate</Button
+>
+
+<Button
+  on:click={() => {
+    doRequest();
+  }}>Request</Button
 >
 
 <Button

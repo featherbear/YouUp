@@ -9,3 +9,8 @@ The simplest template for a Neutralinojs app. It's possible to use your favorite
 # Icon credits
 
 - `trayIcon.png` - Made by [Freepik](https://www.freepik.com) and downloaded from [Flaticon](https://www.flaticon.com)
+
+
+https://developers.google.com/youtube/v3/guides/auth/client-side-web-apps#oauth-2.0-endpoints_1
+https://developers.google.com/youtube/v3/quickstart/js
+https://developers.google.com/youtube/v3/docs/videos/insert
