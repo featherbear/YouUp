@@ -77,6 +77,16 @@
   <div>
     <h1>{playlist.title} ({playlist.itemCount})</h1>
     <p>{playlist.description}</p>
-    <img src={playlist.thumbnails.maxres.url} />
+
+    <img
+      src={(
+        playlist.thumbnails.maxres ||
+        playlist.thumbnails.standard ||
+        playlist.thumbnails.high ||
+        playlist.thumbnails.medium ||
+        playlist.thumbnails.default
+      )?.url}
+      alt="playlist thumbnail"
+    />
   </div>
 {/each}
