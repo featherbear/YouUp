@@ -21,15 +21,25 @@ import { AUTH_CALLBACK_URL, AUTH_CLIENT_ID, AUTH_STORAGE_KEY } from "./consts/au
 // console.log(uri);
 
 // https://developers.googleblog.com/2021/08/gsi-jsweb-deprecation.html
-import { readable } from "svelte/store";
+import { readable, Subscriber } from "svelte/store";
 import type AuthObject from "./types/AuthObject";
 
+let _setAuthStore: Subscriber<AuthObject>
+let _expiryTimeout: NodeJS.Timeout
+
 export const authStore = readable<AuthObject>(null, function (set) {
-    let auth: AuthObject = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY))
-    set(auth)
-    setTimeout(function () {
-        set(null)
-    }, auth.expiry - new Date().getTime())
+    _setAuthStore = function (auth) {
+        set(auth)
+
+        if (auth) {
+            clearTimeout(_expiryTimeout)
+            _expiryTimeout = setTimeout(function () {
+                set(null)
+            }, auth.expiry - new Date().getTime())
+        }
+    }
+
+    _setAuthStore(JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)))
 })
 
 export function withYoutube<T = any>(func: (client: YoutubeServiceClient) => Promise<T>): Promise<T> {
@@ -99,7 +109,7 @@ function generateOAuth2URL(state) {
             ...(state ? { state } : {})
         }).toString();
 }
-export function createAuthChallenge(callback?: (response: GoogleApiOAuth2TokenObject) => void) {
+export function createAuthChallenge(callback?: (response: AuthObject) => void) {
     let id = uid(20)
     let interval = setInterval(function () {
         let response;
@@ -107,12 +117,26 @@ export function createAuthChallenge(callback?: (response: GoogleApiOAuth2TokenOb
             console.log('got a response');
             try {
                 response = JSON.parse(response)
-                callback?.(response)
+
+                let { access_token, expires_in } = response;
+                let authObject: AuthObject = {
+                    access_token,
+                    expiry: new Date().getTime() + (Math.trunc(expires_in) - 60) * 1000,
+                }
 
                 clearInterval(interval)
+
                 localStorage.removeItem(`challenge-${id}`)
+                localStorage.setItem(
+                    AUTH_STORAGE_KEY,
+                    // Expire one minute earlier than given to ensure time sync
+                    JSON.stringify(authObject)
+                );
+                _setAuthStore(authObject)
 
                 console.log('fin');
+
+                callback?.(authObject)
             } catch {
                 console.log('failed response');
             }

@@ -21,19 +21,7 @@
     // TODO: Create secret pair for state, maybe pass in port?
 
     window.open(
-      youtube.createAuthChallenge(function (response) {
-        let { access_token, expires_in } = response;
-
-        localStorage.setItem(
-          AUTH_STORAGE_KEY,
-          // Expire one minute earlier than given to ensure time sync
-          JSON.stringify({
-            access_token,
-            expiry: new Date().getTime() + (Math.trunc(expires_in) - 60) * 1000,
-          })
-        );
-        console.log("response is", response);
-      }),
+      youtube.createAuthChallenge(),
       null,
       "directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no"
     );
