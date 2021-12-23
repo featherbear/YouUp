@@ -7,7 +7,7 @@
 // https://www.googleapis.com/auth/youtubepartner-channel-audit	View private information of your YouTube channel relevant during the audit process with a YouTube partner
 
 import { uid } from "uid";
-import { AUTH_CALLBACK_URL, AUTH_CLIENT_ID } from "./consts/auth";
+import { AUTH_CALLBACK_URL, AUTH_CLIENT_ID, AUTH_STORAGE_KEY } from "./consts/auth";
 
 
 // let uri = oauthClient.generateAuthUrl({
@@ -21,6 +21,66 @@ import { AUTH_CALLBACK_URL, AUTH_CLIENT_ID } from "./consts/auth";
 // console.log(uri);
 
 // https://developers.googleblog.com/2021/08/gsi-jsweb-deprecation.html
+import { readable } from "svelte/store";
+import type AuthObject from "./types/AuthObject";
+
+export const authStore = readable<AuthObject>(null, function (set) {
+    let auth: AuthObject = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY))
+    set(auth)
+    setTimeout(function () {
+        set(null)
+    }, auth.expiry - new Date().getTime())
+})
+
+export function withYoutube<T = any>(func: (client: YoutubeServiceClient) => Promise<T>): Promise<T> {
+    if (!gapi) {
+        console.error("gapi was not initialised")
+        return
+    }
+    if (!gapi.client) {
+        console.error("gapi.client was not initialised")
+        return
+    }
+    if (!gapi.client.getToken()) {
+        console.error("gapi.client.getToken() is empty")
+        return
+    }
+    if (!gapi.client.youtube) {
+        console.error("gapi.client.youtube was not initialised")
+        return
+    }
+
+    return func(gapi.client.youtube)
+}
+
+export function init() {
+    return _init.call(_init) as ReturnType<typeof _init>;
+}
+
+function _init(this: { callPromise?: Promise<boolean> }) {
+    if (this.callPromise) return this.callPromise
+
+    return (this.callPromise = new Promise((resolve, reject) => {
+        gapi.load("client", function () {
+
+            // Load YouTube Data v3 API
+            gapi.client.load("youtube", "v3", () => resolve(true));
+
+            // Set client token
+            authStore.subscribe(function (auth) {
+                if (auth) {
+                    gapi.client.setToken({
+                        access_token: auth.access_token,
+                    });
+                } else {
+                    gapi.client.setToken(null)
+                }
+            });
+
+        });
+    }))
+
+}
 
 
 function generateOAuth2URL(state) {
@@ -29,7 +89,13 @@ function generateOAuth2URL(state) {
             client_id: AUTH_CLIENT_ID,
             redirect_uri: 'http://localhost:64573' + `/${AUTH_CALLBACK_URL}`.replace(/\/\//g, '/'),
             response_type: "token",
-            scope: ["https://www.googleapis.com/auth/youtube.upload"].join(" "),
+            prompt: "consent",
+            scope: [
+                // "https://www.googleapis.com/auth/youtube.upload",
+
+
+                'https://www.googleapis.com/auth/youtube'
+            ].join(" "),
             ...(state ? { state } : {})
         }).toString();
 }
@@ -42,7 +108,10 @@ export function createAuthChallenge(callback?: (response: GoogleApiOAuth2TokenOb
             try {
                 response = JSON.parse(response)
                 callback?.(response)
+
                 clearInterval(interval)
+                localStorage.removeItem(`challenge-${id}`)
+
                 console.log('fin');
             } catch {
                 console.log('failed response');
@@ -54,9 +123,10 @@ export function createAuthChallenge(callback?: (response: GoogleApiOAuth2TokenOb
 }
 
 export function completeAuthChallenge(response: GoogleApiOAuth2TokenObject) {
-    const [port, id] = JSON.parse(atob(response.state))
-    localStorage.setItem(`challenge-${id}`, JSON.stringify(response))
-    console.log(`challenge-${id}`, JSON.stringify(response));
+    let { state, ...rest } = response
+    const [port, id] = JSON.parse(atob(state))
+    localStorage.setItem(`challenge-${id}`, JSON.stringify(rest))
+    console.log(`challenge-${id}`, JSON.stringify(rest));
 }
 
 export function parseResponseURL(queryString) {
@@ -67,9 +137,4 @@ export function parseResponseURL(queryString) {
         console.error("Could not parse response url", err)
         return null
     }
-}
-
-export default {
-
-    // auth: 
 }
