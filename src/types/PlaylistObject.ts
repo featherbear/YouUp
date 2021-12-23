@@ -4,6 +4,6 @@ export default interface PlaylistObject {
     description: string // 5000 character limit
     publishedAt: string // ISO 8601 date of playlist creation
     thumbnails: GoogleApiYouTubeThumbnailResource
-    privacyStatus: 'public' | 'unlisted' | 'private'
+    privacyStatus: string
     itemCount: number
 }
