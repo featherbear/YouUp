@@ -1,4 +1,4 @@
-export default interface ResponseType {
+export default interface OAuthResponse {
     state: string
     access_token: string
     token_type: "Bearer"

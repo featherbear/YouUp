@@ -25,28 +25,19 @@
       null,
       "directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no"
     );
-    // Navigate
-    // Redirect to a port loopback
-    // $$$
-    // Poll with sessionStorage?
-
-    // gapi.auth.setToken({})
-
-    // gapi.auth2.getAuthInstance().signIn();
-
-    // Neutralino.window.create(`/resources/index.html#/${path}/${windowID}`);
   }
+
   youtube.init().then(() => {
     console.log("YouTube API Loaded");
   });
 
   function doRequest() {
-    youtube.withYoutube((c) => {
-      c.playlists.list({ mine: true }).then(function (a, b, c) {
-        console.log(a, b, c);
-      });
+    youtube.withYoutube.getPlaylists().then((d) => {
+      console.log(d);
     });
   }
+
+  let playlists
 </script>
 
 <svelte:head>

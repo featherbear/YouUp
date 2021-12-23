@@ -23,6 +23,8 @@ import { AUTH_CALLBACK_URL, AUTH_CLIENT_ID, AUTH_STORAGE_KEY } from "./consts/au
 // https://developers.googleblog.com/2021/08/gsi-jsweb-deprecation.html
 import { readable, Subscriber } from "svelte/store";
 import type AuthObject from "./types/AuthObject";
+import { getPlaylistsSTUB } from "./STUB";
+import type PlaylistObject from "./types/PlaylistObject";
 
 let _setAuthStore: Subscriber<AuthObject>
 let _expiryTimeout: NodeJS.Timeout
@@ -61,6 +63,56 @@ export function withYoutube<T = any>(func: (client: YoutubeServiceClient) => Pro
     }
 
     return func(gapi.client.youtube)
+}
+
+withYoutube.getPlaylists = function () {
+    return withYoutube(
+        async (c) => {
+            let items: PlaylistObject[] = [];
+
+            let pagetoken = undefined;
+            do {
+                const data = await c.playlists.list({
+                    mine: true,
+                    part: ["snippet", "id", "status", "contentDetails"].join(","),
+                    maxResults: 50,
+                    pagetoken,
+                });
+
+                pagetoken = data.result.nextPageToken;
+
+                for (let {
+                    contentDetails: { itemCount },
+                    id,
+                    status: { privacyStatus },
+                    snippet: { description, publishedAt, title, thumbnails },
+                } of data.result.items) {
+                    items = [
+                        ...items,
+                        {
+                            id,
+                            title,
+                            description,
+                            publishedAt,
+                            thumbnails,
+                            privacyStatus,
+                            itemCount,
+                        },
+                    ];
+                }
+            } while (pagetoken);
+
+            return items;
+        })
+}
+
+/**
+ * STUB
+ * @deprecated STUB STUB STUB
+ * @returns TIS A MERE STUB
+ */
+withYoutube.getPlaylists = async function() {
+    return getPlaylistsSTUB
 }
 
 export function init() {
