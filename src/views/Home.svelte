@@ -10,6 +10,7 @@
   import * as youtube from "../youtube";
   import { pub, sub } from "../VirtualIPC";
   import { AUTH_STORAGE_KEY } from "../consts/auth";
+  import { asPlaylistObjectArray } from "../types/SvelteCompat";
 
   console.log($authStore);
 
@@ -33,11 +34,11 @@
 
   function doRequest() {
     youtube.withYoutube.getPlaylists().then((d) => {
-      console.log(d);
+      playlists = d;
     });
   }
 
-  let playlists
+  let playlists = [];
 </script>
 
 <svelte:head>
@@ -71,3 +72,11 @@
     Neutralino.os.showOpenDialog();
   }}>Open</Button
 >
+
+{#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
+  <div>
+    <h1>{playlist.title} ({playlist.itemCount})</h1>
+    <p>{playlist.description}</p>
+    <img src={playlist.thumbnails.maxres.url} />
+  </div>
+{/each}
