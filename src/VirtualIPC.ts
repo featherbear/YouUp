@@ -1,5 +1,5 @@
 import { uid } from "uid";
-import type IPCTypes from "./IPCEvents";
+import type IPCTypes from "./types/IPCEvents";
 
 export function sub(stream: string) {
     let cb: ({ type: IPCTypes, data: any }) => void;
