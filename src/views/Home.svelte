@@ -73,20 +73,64 @@
   }}>Open</Button
 >
 
-{#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-  <div>
-    <h1>{playlist.title} ({playlist.itemCount})</h1>
-    <p>{playlist.description}</p>
+<div class="cards">
+  {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
+    <div use:attachDragOverlay={{}}>
+      <h4>{playlist.title} ({playlist.itemCount})</h4>
+      <p>{playlist.description}</p>
 
-    <img
-      src={(
-        playlist.thumbnails.maxres ||
-        playlist.thumbnails.standard ||
-        playlist.thumbnails.high ||
-        playlist.thumbnails.medium ||
-        playlist.thumbnails.default
-      )?.url}
-      alt="playlist thumbnail"
-    />
-  </div>
-{/each}
+      <img
+        src={(
+          playlist.thumbnails.maxres ||
+          playlist.thumbnails.standard ||
+          playlist.thumbnails.high ||
+          playlist.thumbnails.medium ||
+          playlist.thumbnails.default
+        )?.url}
+        alt="playlist thumbnail"
+      />
+    </div>
+  {/each}
+</div>
+
+<style>
+  .cards {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    /* justify-content: center; */
+  }
+  @media (max-width: 540px) {
+    .cards {
+      flex-direction: column;
+      background-color: red;
+    }
+    .cards {
+      width: 100%;  
+    }
+  }
+  .cards > div {
+    width: 360px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    background-color: #bec6dd;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .cards > div:hover {
+    background-color: #d4dcf3;
+  }
+  .cards > div > p {
+    flex: 1;
+  }
+  .cards > div > img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 5px;
+  }
+</style>
