@@ -1,33 +1,35 @@
 <script>
-  import { Modal } from "carbon-components-svelte";
-  import { asPlaylistObject } from "src/types/SvelteCompat";
-  import { createEventDispatcher } from "svelte";
+  // Do not use this component directly
+  // Use the .createDialog(playlist: Playlist) method
+
+  import { TextInput, Modal, Form } from "carbon-components-svelte";
+  import { asPlaylistObject } from "../types/SvelteCompat";
+  import { createEventDispatcher, onMount } from "svelte";
+  import { parsePlaylistObject } from "../YouUpPlaylistObject";
 
   const dispatch = createEventDispatcher();
 
-  let open = true;
-
   export let playlist;
+  let parsedPlaylist = parsePlaylistObject(playlist);
+  console.log(parsedPlaylist);
+
+  let data = {
+    title: "",
+    description: "",
+  };
 
   let formReady = false;
-
-  $: formReady = false;
+  $: formReady = !!data.title?.trim();
 
   function submit() {
     if (!formReady) return;
   }
-
-  import {
-    Button,
-    TextInput,
-    TextInputSkeleton,
-  } from "carbon-components-svelte";
 </script>
 
 {#if playlist}
   {#await asPlaylistObject(playlist) then obj}
     <Modal
-      bind:open
+      open={true}
       modalHeading="Upload video to {obj.title}"
       primaryButtonText="Upload"
       primaryButtonDisabled={!formReady}
@@ -35,12 +37,20 @@
       on:click:button--primary={() => submit()}
       on:click:button--secondary={() => dispatch("destroy")}
     >
-      <TextInput labelText="Title" placeholder="Enter video title..." />
+      <Form>
+        <TextInput
+          labelText="Title (required)"
+          placeholder="Enter video title..."
+          required={true}
+          bind:value={data.title}
+        />
 
-      <TextInput
-        labelText="Description"
-        placeholder="Enter video description..."
-      />
+        <TextInput
+          labelText="Description"
+          placeholder="Enter video description..."
+          bind:value={data.description}
+        />
+      </Form>
     </Modal>
   {/await}
 {/if}

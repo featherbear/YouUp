@@ -11,6 +11,7 @@
   import { asPlaylistObjectArray } from "../types/SvelteCompat";
 
   import { attach as attachDragOverlay, registerDragListener } from "../drag/";
+  import UploadDialog from "./UploadDialog";
   console.log($authStore);
 
   function spawnWindow(path, seedData = {}) {
@@ -40,6 +41,7 @@
 
   function openUploadModal(playlist) {
     console.log(playlist);
+    UploadDialog.createDialog(playlist);
   }
 
   let playlists = [];

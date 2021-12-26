@@ -1,12 +1,13 @@
-import UploadDialog from './_UploadDialog.svelte'
+import type PlaylistObject from '../types/PlaylistObject'
+import _UploadDialog from './_UploadDialog.svelte'
 
-function createDialog(props) {
+function createDialog(playlist: PlaylistObject) {
     // if (typeof props === 'string') props = { title: props }
 
-    const lightbox = new UploadDialog({
+    const lightbox = new _UploadDialog({
         target: document.body,
         props: {
-            data: props
+            playlist
         },
         intro: true
     })
@@ -18,10 +19,10 @@ function createDialog(props) {
     return lightbox.promise
 }
 
-const _UploadDialog: UploadDialog & {
-    createDialog(props): any
-} = UploadDialog as any
+const UploadDialog: _UploadDialog & {
+    createDialog(playlist: PlaylistObject): any
+} = _UploadDialog as any
 
-_UploadDialog.createDialog = createDialog
+UploadDialog.createDialog = createDialog
 
-export default _UploadDialog
+export default UploadDialog
