@@ -65,7 +65,35 @@ export function withYoutube<T = any>(func: (client: YoutubeServiceClient) => Pro
     return func(gapi.client.youtube)
 }
 
-withYoutube.uploadVideo = function (file: File) {
+withYoutube.uploadVideo = async function (file: File) {
+    function breakHereHah() {
+
+    }
+    breakHereHah();
+    let body = file.slice(0)
+
+    console.log(file.size);
+    console.log(await file.text(), await (await file.text()).length);
+
+    gapi.client.request({
+        method: "PUT",
+        path: 'https://content.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=id%2Csnippet%2Cstatus&upload_id=ADPycdsnxSHi6FzThuZ-GuIlztQ1fAHTraFv-usc6SmKSK5ML1bW2MRHL8fvup-QHdiv9BGzJJJPu1_mU82v2QNis2M',
+        body: body,
+        headers: {
+            // 'Content-Type': file.type,
+            // 'content-type': 'multipart/related; boundary="random123"',
+            'Content-Length': body.size,
+            'Content-Range': `bytes ${0}-${file.size - 1}/${file.size}`
+        }
+
+    }).then(function (a) {
+        console.log('success', a);
+    }, function fail(a) {
+        console.log('fail', a);
+    })
+
+    return;
+
 
 
     // return (async function () {
@@ -75,103 +103,103 @@ withYoutube.uploadVideo = function (file: File) {
     //     console.log(new Uint8Array(await file.arrayBuffer()))
     // })();
 
-    return withYoutube(async (c) => {
-        // https://developers.google.com/youtube/v3/docs/videos/insert
-        // As of 25th December 2021 (Happy birthday Jesus)
-        // - Maximum file size: 128GB
-        // - Accepted Media MIME types: video/*, application/octet-stream
+    // return withYoutube(async (c) => {
+    //     // https://developers.google.com/youtube/v3/docs/videos/insert
+    //     // As of 25th December 2021 (Happy birthday Jesus)
+    //     // - Maximum file size: 128GB
+    //     // - Accepted Media MIME types: video/*, application/octet-stream
 
-        if (file.name != "ABCDEFGH.mov") {
-            console.log('rejected for wrong file');
-            return
-        }
+    //     if (file.name != "ABCDEFGH.mov") {
+    //         console.log('rejected for wrong file');
+    //         return
+    //     }
 
-        await gapi.client.request(
-            {
-                path: 'https://www.googleapis.com/upload/youtube/v3/videos',
-                method: "POST",
-                params: {
-                    uploadType: 'resumable',
-                    part: 'id,snippet,status'
-                },
-                headers: {
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'X-Upload-Content-Length': file.size,
-                    'x-upload-content-type': file.type
-                },
-                body: JSON.stringify({
-                    snippet: {
-                        title: "test video",
-                        description: "this is a test video"
-                    },
-                    status: {
-                        privacyStatus: 'unlisted'
-                    }
+    //     await gapi.client.request(
+    //         {
+    //             path: 'https://www.googleapis.com/upload/youtube/v3/videos',
+    //             method: "POST",
+    //             params: {
+    //                 uploadType: 'resumable',
+    //                 part: 'id,snippet,status'
+    //             },
+    //             headers: {
+    //                 'Content-Type': 'application/json; charset=UTF-8',
+    //                 'X-Upload-Content-Length': file.size,
+    //                 'x-upload-content-type': file.type
+    //             },
+    //             body: JSON.stringify({
+    //                 snippet: {
+    //                     title: "test video",
+    //                     description: "this is a test video"
+    //                 },
+    //                 status: {
+    //                     privacyStatus: 'unlisted'
+    //                 }
 
-                })
-            }
-        ).then(function (c) {
-            console.log('Created video', c);
+    //             })
+    //         }
+    //     ).then(function (c) {
+    //         console.log('Created video', c);
 
-            let reqURL = c.headers['location']
+    //         let reqURL = c.headers['location']
 
-            async function response(f) {
-                console.log('got status', f);
-                if (f.status == 308) {
-                    let done;
-                    if (Number.isNaN((done = Math.trunc(f.headers.range?.split("-")?.[1])))) {
-                        done = -1
-                    }
+    //         async function response(f) {
+    //             console.log('got status', f);
+    //             if (f.status == 308) {
+    //                 let done;
+    //                 if (Number.isNaN((done = Math.trunc(f.headers.range?.split("-")?.[1])))) {
+    //                     done = -1
+    //                 }
 
-                    let body = file.slice(done + 1, null, file.type)
+    //                 let body = file.slice(done + 1, null, file.type)
 
-                    // 10k quota
-                    console.log('start upload');
-                    console.log(body);
+    //                 // 10k quota
+    //                 console.log('start upload');
+    //                 console.log(body);
 
-                    function Uint8ToString(u8a) {
-                        var CHUNK_SZ = 0x8000;
-                        var c = [];
-                        for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
-                            c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
-                        }
-                        return c.join("");
-                    }
+    //                 function Uint8ToString(u8a) {
+    //                     var CHUNK_SZ = 0x8000;
+    //                     var c = [];
+    //                     for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
+    //                         c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
+    //                     }
+    //                     return c.join("");
+    //                 }
 
-                    gapi.client.request({
-                        method: "PUT",
-                        path: reqURL,
-                        // body: `--random123\nContent-Type: ${file.type}\nMIME-Version: 1.0\nContent-Transfer-Encoding: base64\n\n` + btoa(Uint8ToString(new Uint8Array(await body.arrayBuffer()))) + '\n--random123--\n',
-                        body: new Uint8Array(await file.arrayBuffer()),
-                        headers: {
-                            // 'Content-Type': file.type,
-                            // 'content-type': 'multipart/related; boundary="random123"',
-                            'Content-Length': body.size,
-                            'Content-Range': `bytes ${done + 1}-${file.size - 1}/${file.size}`
-                        }
+    //                 gapi.client.request({
+    //                     method: "PUT",
+    //                     path: reqURL,
+    //                     // body: `--random123\nContent-Type: ${file.type}\nMIME-Version: 1.0\nContent-Transfer-Encoding: base64\n\n` + btoa(Uint8ToString(new Uint8Array(await body.arrayBuffer()))) + '\n--random123--\n',
+    //                     body: new Uint8Array(await file.arrayBuffer()),
+    //                     headers: {
+    //                         // 'Content-Type': file.type,
+    //                         // 'content-type': 'multipart/related; boundary="random123"',
+    //                         'Content-Length': body.size,
+    //                         'Content-Range': `bytes ${done + 1}-${file.size - 1}/${file.size}`
+    //                     }
 
-                    }).then(function (a) {
-                        console.log('success', a);
-                    }, function fail(a) {
-                        console.log('fail', a);
-                    })
-                }
-            }
+    //                 }).then(function (a) {
+    //                     console.log('success', a);
+    //                 }, function fail(a) {
+    //                     console.log('fail', a);
+    //                 })
+    //             }
+    //         }
 
 
-            gapi.client.request({
-                path: reqURL,
-                method: "PUT",
-                headers: {
-                    'Content-Length': 0,
-                    'Content-Range': `bytes */${file.size}`,
-                    'Accept-Encoding': 'deflate, br'
-                },
-            }).then(response, response)
+    //         gapi.client.request({
+    //             path: reqURL,
+    //             method: "PUT",
+    //             headers: {
+    //                 'Content-Length': 0,
+    //                 'Content-Range': `bytes */${file.size}`,
+    //                 'Accept-Encoding': 'deflate, br'
+    //             },
+    //         }).then(response, response)
 
-        })
+    //     })
 
-    })
+    // })
 }
 
 withYoutube.getPlaylists = function () {
@@ -220,7 +248,7 @@ withYoutube.getPlaylists = function () {
  * @deprecated STUB STUB STUB
  * @returns TIS A MERE STUB
  */
-withYoutube.getPlaylists = async function() {
+withYoutube.getPlaylists = async function () {
     return getPlaylistsSTUB
 }
 

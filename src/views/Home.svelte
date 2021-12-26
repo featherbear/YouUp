@@ -31,6 +31,7 @@
 
   youtube.init().then(() => {
     console.log("YouTube API Loaded");
+    doRequest();
     registerDragListener();
   });
 
@@ -38,6 +39,11 @@
     youtube.withYoutube.getPlaylists().then((d) => {
       playlists = d;
     });
+  }
+
+  function handleSelectFile(f) {
+    console.log(f);
+    youtube.withYoutube.uploadVideo(f);
   }
 
   let playlists = [];
@@ -77,11 +83,7 @@
 
 <div class="cards">
   {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-    <div
-      use:attachDragOverlay={function (f) {
-        console.log("select ", f);
-      }}
-    >
+    <div use:attachDragOverlay={handleSelectFile}>
       <h4>{playlist.title} ({playlist.itemCount})</h4>
       <p>{playlist.description}</p>
 
