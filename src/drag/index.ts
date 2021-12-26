@@ -6,11 +6,14 @@ export function setOverlayVisiblity(value) {
     components.forEach(c => c.setOverlayVisiblity(value))
 }
 
-export function attach(elem, handlerFn: (file) => void) {
+export function attach(elem, handlerFn: (file: File) => void) {
     const ref = new DragOverlay({
         target: elem,
         props: {
-            handler: handlerFn
+            handler: function (file) {
+                setOverlayVisiblity(false)
+                handlerFn(file)
+            } as typeof handlerFn
         }
     })
 

@@ -12,6 +12,7 @@
   import { AUTH_STORAGE_KEY } from "../consts/auth";
   import { asPlaylistObjectArray } from "../types/SvelteCompat";
 
+  import { attach as attachDragOverlay, registerDragListener } from "../drag/";
   console.log($authStore);
 
   function spawnWindow(path, seedData = {}) {
@@ -30,6 +31,7 @@
 
   youtube.init().then(() => {
     console.log("YouTube API Loaded");
+    registerDragListener();
   });
 
   function doRequest() {
@@ -75,7 +77,11 @@
 
 <div class="cards">
   {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-    <div use:attachDragOverlay={{}}>
+    <div
+      use:attachDragOverlay={function (f) {
+        console.log("select ", f);
+      }}
+    >
       <h4>{playlist.title} ({playlist.itemCount})</h4>
       <p>{playlist.description}</p>
 
@@ -109,7 +115,7 @@
       background-color: red;
     }
     .cards {
-      width: 100%;  
+      width: 100%;
     }
   }
   .cards > div {
@@ -121,6 +127,9 @@
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.2s;
+
+    /* Set relative style for absolute positioned drag */
+    position: relative;
   }
   .cards > div:hover {
     background-color: #d4dcf3;
