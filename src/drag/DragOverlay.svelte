@@ -2,7 +2,8 @@
   import { onMount } from "svelte";
 
   // fn
-  export let handler;
+  export let handler = null;
+  export let notifyFn = null;
 
   const preventDefaults = (evt) => {
     evt.preventDefault();
@@ -29,7 +30,9 @@
       "drop",
       (event) => {
         preventDefaults(event);
+        notifyFn(event);
         setOverlayVisiblity(false);
+
         let file = event.dataTransfer.files[0];
         if (!file) return;
         if (!file.type.startsWith("video/")) {

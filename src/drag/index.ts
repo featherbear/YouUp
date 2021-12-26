@@ -13,7 +13,10 @@ export function attach(elem, handlerFn: (file: File) => void) {
             handler: function (file) {
                 setOverlayVisiblity(false)
                 handlerFn(file)
-            } as typeof handlerFn
+            } as typeof handlerFn,
+            notifyFn: function (event: Event) {
+                setOverlayVisiblity(false)
+            }
         }
     })
 
@@ -27,8 +30,12 @@ export function attach(elem, handlerFn: (file: File) => void) {
 export function registerDragListener() {
     window.addEventListener('dragenter', () => {
         setOverlayVisiblity(true)
-        console.log('enter');
-    }, false)
+    }, false);
+
+
+    window.addEventListener('dragleave', function (e) {
+        if (e.relatedTarget === null) setOverlayVisiblity(false)
+    }, false);
 
     window.addEventListener('dragend', () => {
         setOverlayVisiblity(false)
