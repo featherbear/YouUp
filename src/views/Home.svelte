@@ -8,8 +8,6 @@
   import { uid } from "uid";
   import { authStore } from "../youtube";
   import * as youtube from "../youtube";
-  import { pub, sub } from "../VirtualIPC";
-  import { AUTH_STORAGE_KEY } from "../consts/auth";
   import { asPlaylistObjectArray } from "../types/SvelteCompat";
 
   import { attach as attachDragOverlay, registerDragListener } from "../drag/";
@@ -40,6 +38,10 @@
     });
   }
 
+  function openUploadModal(playlist) {
+    console.log(playlist);
+  }
+
   let playlists = [];
 </script>
 
@@ -65,15 +67,15 @@
 <Button
   on:click={() => {
     doRequest();
-  }}>Request</Button
+  }}>Load Playlists</Button
 >
 
-<Button
+<!-- <Button
   on:click={() => {
     console.log(Neutralino);
     Neutralino.os.showOpenDialog();
   }}>Open</Button
->
+> -->
 
 <div class="cards">
   {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
@@ -81,6 +83,7 @@
       use:attachDragOverlay={function (f) {
         console.log("select ", f);
       }}
+      on:click={() => openUploadModal(playlist)}
     >
       <h4>{playlist.title} ({playlist.itemCount})</h4>
       <p>{playlist.description}</p>
