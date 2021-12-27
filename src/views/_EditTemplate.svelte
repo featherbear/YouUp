@@ -106,7 +106,12 @@
               <ul>
                 {#each Object.entries(parsedPlaylist.YouUp.buildReplacements(TestFile)) as [key, value] (key)}
                   <li>
-                    <CodeSnippet type="inline" code=":{key}:" light={true} /> = {value}
+                    <CodeSnippet
+                      tabindex={-1}
+                      type="inline"
+                      code=":{key}:"
+                      light={true}
+                    /> = {value}
                   </li>
                 {/each}
               </ul>
