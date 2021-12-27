@@ -13,9 +13,10 @@ type InternalYouUpSchema = {
 export type YouUpSchema = Omit<InternalYouUpSchema, 't'>
 
 export type YouUpPlaylistObject = PlaylistObject & {
-    YouUp?: YouUpSchema & {
-        generateTitle(file: File): string,
-        generateDescription(file: File): string
+    YouUp: YouUpSchema & {
+        generateTitle(file: File, formatter?: string): string,
+        generateDescription(file: File, formatter?: string): string
+        buildReplacements(file: File): {[key: string]: any}
     }
 }
 
@@ -88,19 +89,30 @@ function parseMetadata(metadata: string) {
 
 }
 
-export function parsePlaylistObject(playlist: PlaylistObject) {
-    const tagIdx = playlist.description.indexOf(SEARCH_TAG)
-    if (tagIdx === -1) return playlist
+export function parsePlaylistObject(playlist: PlaylistObject): YouUpPlaylistObject {
+    const defaults: YouUpSchema = {
+        defaultPrivacy: 'unlisted',
+        titleFormat: '',
+        descriptionFormat: '',
+    }
 
-    let data = parseMetadata(playlist.description.slice(
+    // Clone data
+    playlist = { ...playlist }
+
+    const tagIdx = playlist.description.indexOf(SEARCH_TAG)
+    let data: YouUpSchema;
+
+    if (tagIdx === -1 || !(data = parseMetadata(playlist.description.slice(
         tagIdx + SEARCH_TAG.length,
         // Get position of next space, or very end if there is no space
         Math.max(0, playlist.description.indexOf(' ', tagIdx + SEARCH_TAG.length)) || playlist.description.length
-    ))
-    if (!data) return playlist
+    )))) {
+        data = defaults
+    }
 
-    // Assume all is well
-    function makeReplacement(file: File, formatter: string) {
+    (playlist as any).YouUp = data
+
+    function buildReplacements(file: File) {
         let today = dayjs()
 
         const replacements = {
@@ -109,12 +121,20 @@ export function parsePlaylistObject(playlist: PlaylistObject) {
             'playlistTitle': playlist.title,
             'fileTitle': file.name,
             'date-DDMMYYYY': today.format('DDMMYYYY'),
+            'date-DD/MM/YYYY': today.format('DD/MM/YYYY'),
             'date-YYYYMMDD': today.format('YYYYMMDD'),
         }
+        return replacements
+    }
 
-        var re = new RegExp(Object.keys(replacements).map(v => `:(${v}):`).join("|"), "g");
+    // Assume all is well
+    function makeReplacement(file: File, formatter: string) {
+        // Recreate replacements so that dates (e.g.) will be correct as the day spills over to tomorrow
+        let replacements = buildReplacements(file)
 
-        return formatter.replace(re, function (matched) {
+        var re = new RegExp(":(" + Object.keys(replacements).join("|") + "):", "g");
+
+        return formatter.replace(re, function (_, matched) {
             return replacements[matched];
         });
 
@@ -124,12 +144,13 @@ export function parsePlaylistObject(playlist: PlaylistObject) {
         ...playlist,
         YouUp: {
             ...data,
-            generateDescription(file) {
-                return makeReplacement(file, data.descriptionFormat)
+            generateDescription(file, formatter?: string) {
+                return makeReplacement(file, formatter ?? data.descriptionFormat)
             },
-            generateTitle(file) {
-                return makeReplacement(file, data.titleFormat)
-            }
+            generateTitle(file, formatter?: string) {
+                return makeReplacement(file, formatter ?? data.titleFormat)
+            },
+            buildReplacements
         }
     }
 
