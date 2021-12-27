@@ -156,3 +156,10 @@ export function parsePlaylistObject(playlist: PlaylistObject): YouUpPlaylistObje
 
     return YouUpPlaylist
 }
+
+export const TestFile: File = {
+    name: "ExampleFile.mp4",
+    type: 'video/mp4',
+    size: 13723,
+    lastModified: dayjs().subtract(5, 'minute').toDate().getTime()
+} as any
