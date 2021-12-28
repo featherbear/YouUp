@@ -53,8 +53,8 @@
   }
 </script>
 
-<div class="dragContainer">
-  <div class="dragOverlay" use:registerDragEvents class:visible={isVisible} />
+<div class="dragContainer" class:visible={isVisible}>
+  <div class="dragOverlay" use:registerDragEvents />
 </div>
 
 <style>
@@ -66,7 +66,11 @@
     left: 0;
   }
 
-  .dragContainer .dragOverlay.visible {
+  .dragContainer:not(.visible) {
+    display: none;
+  }
+
+  .dragContainer .dragOverlay {
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
 
@@ -80,7 +84,7 @@
     width: 100%;
   }
 
-  .dragContainer .dragOverlay.visible::before {
+  .dragContainer .dragOverlay::before {
     content: "Drop video to upload";
     color: white;
     height: 100%;
@@ -89,7 +93,7 @@
     align-items: center;
   }
 
-  .dragContainer .dragOverlay.visible:hover {
+  .dragContainer .dragOverlay:hover {
     background-color: rgba(29, 40, 51, 0.4) !important;
   }
 </style>
