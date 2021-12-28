@@ -27,6 +27,7 @@
 
   youtube.init().then(() => {
     console.log("YouTube API Loaded");
+    doRequest();
     registerDragListener();
   });
 
@@ -36,9 +37,27 @@
     });
   }
 
-  function openUploadModal(playlist) {
-    console.log(playlist);
-    createPlaylistDialog(UploadDialog, playlist);
+  let filePickerElem;
+
+  function handleSelectFile(f, playlist) {
+    createPlaylistDialog(UploadDialog, playlist, { file: f }).then(
+      async (resp) => {
+        if (!resp) return;
+        const { detail } = resp;
+
+        youtube.withYoutube(async (c) => {
+          const video = await youtube.withYoutube.uploadVideo(f, detail);
+          await c.playlistItems.insert({
+            part: "snippet",
+            snippet: {
+              playlistId: playlist.id,
+              resourceId: video.id,
+            },
+          });
+          alert(":)");
+        });
+      }
+    );
   }
 
   function openEditModal(playlist) {
@@ -54,10 +73,7 @@
       );
       playlist.description = newDescription;
 
-      await youtube.withYoutube.updateRemotePlaylist(
-        playlist,
-        newDescription
-      );
+      await youtube.withYoutube.updateRemotePlaylist(playlist, newDescription);
 
       // Reassign playlist array to cause UI update
       // Or maybe use the Svelte #key block?
@@ -111,13 +127,23 @@
   }}>Open</Button
 > -->
 
-<!-- use:attachDragOverlay={function (f) {
-        console.log("select ", f);
-      }} -->
+<input
+  type="file"
+  bind:this={filePickerElem}
+  on:change={() => {
+    let playlist = filePickerElem.target;
+    filePickerElem.target = null;
+    if (!playlist) return;
+    handleSelectFile(filePickerElem.files[0], playlist);
+  }}
+  accept="video/*"
+  style="display:none"
+/>
+
 <div class="cards">
   {#key playlists}
     {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-      <div on:click|self={() => openUploadModal(playlist)}>
+      <div use:attachDragOverlay={(f) => handleSelectFile(f, playlist)}>
         <h4>{playlist.title} ({playlist.itemCount})</h4>
         <p>{sanitiseText(playlist.description)}</p>
 
@@ -131,11 +157,18 @@
           )?.url}
           alt="playlist thumbnail"
         />
+
         <ButtonSet>
           <Button size={"small"} on:click={() => openEditModal(playlist)}>
-            abc
+            Edit
           </Button>
-          <Button size={"small"}>def</Button>
+          <Button
+            size={"small"}
+            on:click={() => {
+              filePickerElem.target = playlist;
+              filePickerElem.click();
+            }}>Upload</Button
+          >
         </ButtonSet>
       </div>
     {/each}

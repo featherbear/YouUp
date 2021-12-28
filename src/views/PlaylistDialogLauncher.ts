@@ -1,14 +1,15 @@
 import type { SvelteComponent } from 'svelte'
 import type PlaylistObject from '../types/PlaylistObject'
 
-export default function createPlaylistDialog(component: typeof SvelteComponent, playlist: PlaylistObject) {
+export default function createPlaylistDialog(component: typeof SvelteComponent, playlist: PlaylistObject, props: {}) {
     // if (typeof props === 'string') props = { title: props }
 
     return new Promise((resolve, reject) => {
         const lightbox: SvelteComponent = new component({
             target: document.body,
             props: {
-                playlist
+                playlist,
+                ...props
             },
             intro: true
         })

@@ -7,7 +7,8 @@ startup()
 
 export default new App({
     target: document.getElementById('app'),
-    props: { controller }
+    props: { controller },
+    intro: true,
 })
 
 // controller.showInfo();
