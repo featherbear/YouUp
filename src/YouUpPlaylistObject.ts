@@ -19,7 +19,7 @@ export type YouUpPlaylistObject = PlaylistObject & {
     YouUp: YouUpSchema & {
         generateTitle(file: File, formatter?: string): string,
         generateDescription(file: File, formatter?: string): string
-        buildReplacements(file: File): {[key: string]: any}
+        buildReplacements(file: File): { [key: string]: any }
     }
 }
 

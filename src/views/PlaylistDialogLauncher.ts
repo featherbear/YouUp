@@ -1,19 +1,27 @@
+import type { SvelteComponent } from 'svelte'
 import type PlaylistObject from '../types/PlaylistObject'
 
-export default function createPlaylistDialog(component: any, playlist: PlaylistObject) {
+export default function createPlaylistDialog(component: typeof SvelteComponent, playlist: PlaylistObject) {
     // if (typeof props === 'string') props = { title: props }
 
-    const lightbox = new component({
-        target: document.body,
-        props: {
-            playlist
-        },
-        intro: true
-    })
+    return new Promise((resolve, reject) => {
+        const lightbox: SvelteComponent = new component({
+            target: document.body,
+            props: {
+                playlist
+            },
+            intro: true
+        })
 
-    lightbox.$on('destroy', () => {
-        lightbox.$destroy()
-    })
+        lightbox.$on('close', () => {
+            resolve(null)
+            lightbox.$destroy()
+        })
 
-    return lightbox.promise
+
+        lightbox.$on('submit', (data) => {
+            resolve(data)
+            lightbox.$destroy()
+        })
+    })
 }

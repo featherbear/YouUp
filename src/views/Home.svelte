@@ -13,9 +13,13 @@
   import { asPlaylistObjectArray } from "../types/SvelteCompat";
 
   import { attach as attachDragOverlay, registerDragListener } from "../drag/";
-import createPlaylistDialog from "./PlaylistDialogLauncher";
-import UploadDialog from "./_UploadDialog.svelte";
-import EditTemplate from "./_EditTemplate.svelte";
+  import createPlaylistDialog from "./PlaylistDialogLauncher";
+  import UploadDialog from "./_UploadDialog.svelte";
+  import EditTemplate from "./_EditTemplate.svelte";
+  import {
+    updatePlaylistInternal,
+    regeneratePlaylistMetadata,
+  } from "../YouUpPlaylistObject";
 
   console.log($authStore);
 
@@ -46,7 +50,7 @@ import EditTemplate from "./_EditTemplate.svelte";
 
   function openUploadModal(playlist) {
     console.log(playlist);
-    createPlaylistDialog(UploadDialog, playlist)
+    createPlaylistDialog(UploadDialog, playlist);
   }
 
   function openEditModal(playlist) {
@@ -100,14 +104,12 @@ import EditTemplate from "./_EditTemplate.svelte";
   }}>Open</Button
 > -->
 
-      <!-- use:attachDragOverlay={function (f) {
+<!-- use:attachDragOverlay={function (f) {
         console.log("select ", f);
       }} -->
 <div class="cards">
   {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-    <div
-      on:click|self={() => openUploadModal(playlist)}
-    >
+    <div on:click|self={() => openUploadModal(playlist)}>
       <h4>{playlist.title} ({playlist.itemCount})</h4>
       <p>{playlist.description}</p>
 
@@ -122,10 +124,7 @@ import EditTemplate from "./_EditTemplate.svelte";
         alt="playlist thumbnail"
       />
       <ButtonSet>
-        <Button
-          size={"small"}
-          on:click={() => openEditModal(playlist)}
-        >
+        <Button size={"small"} on:click={() => openEditModal(playlist)}>
           abc
         </Button>
         <Button size={"small"}>def</Button>
