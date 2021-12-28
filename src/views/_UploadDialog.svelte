@@ -35,7 +35,7 @@
       primaryButtonDisabled={!formReady}
       secondaryButtonText="Cancel"
       on:click:button--primary={() => submit()}
-      on:click:button--secondary={() => dispatch("destroy")}
+      on:click:button--secondary={() => dispatch("close")}
     >
       <Form>
         <TextInput

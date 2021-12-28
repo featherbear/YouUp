@@ -1,7 +1,16 @@
 import type PlaylistObject from "./types/PlaylistObject";
 import dayjs from 'dayjs'
 
+import bs58 from 'base-58'
+import { Buffer } from 'buffer/'
+
 const SEARCH_TAG = "==YOUUP=="
+const B58_CHARSET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+const metadataRegexp = new RegExp(`${SEARCH_TAG}[${B58_CHARSET}]*`, 'g')
+
+export function sanitiseText(input: string) {
+    return input?.replace(metadataRegexp, '') ?? ""
+}
 
 type InternalYouUpSchema = {
     t: 'YouUp'
@@ -16,18 +25,25 @@ export type YouUpPlaylistObject = PlaylistObject & {
     YouUp: YouUpSchema & {
         generateTitle(file: File, formatter?: string): string,
         generateDescription(file: File, formatter?: string): string
-        buildReplacements(file: File): {[key: string]: any}
+        buildReplacements(file: File): { [key: string]: any }
     }
 }
 
-export function updatePlaylistMetadata(playlist: YouUpPlaylistObject) {
+export function updatePlaylistInternal(playlist: YouUpPlaylistObject, data: YouUpSchema) {
+    playlist.YouUp = { ...playlist.YouUp, ...data }
+    return playlist
+}
+
+export function regeneratePlaylistMetadata(playlist: YouUpPlaylistObject) {
     let newDescription = playlist.description
     const tagIdx = playlist.description.indexOf(SEARCH_TAG)
     const newPayload = createMetadata(playlist)
 
+    //  TODO: Integrate regexp searcher?
+
     if (tagIdx === -1) {
         // If not found - add at the end
-        newDescription += '\n\n\n' + SEARCH_TAG + newPayload
+        newDescription = [newDescription, SEARCH_TAG + newPayload].join('\n\n\n')
     } else {
         let metadataIdxStart = tagIdx + SEARCH_TAG.length
         let metadataIdxEnd = Math.max(0, playlist.description.indexOf(' ', tagIdx + SEARCH_TAG.length)) || playlist.description.length // Get position of next space, or very end if there is no space
@@ -61,32 +77,36 @@ export function createMetadata(playlist: YouUpPlaylistObject) {
         defaultPrivacy,
     }: { [key in keyof YouUpSchema]: any } = playlist.YouUp
 
-    return JSON.stringify({
+    return bs58.encode(Buffer.from(JSON.stringify({
         t: 'YouUp',
         titleFormat,
         descriptionFormat,
         defaultPrivacy
-    }).slice(1, -1)
+    }).slice(1, -1).replace(/=*$/g, '')))
 }
 
 function parseMetadata(metadata: string) {
     let data: InternalYouUpSchema
 
-    try {
-        data = JSON.parse(atob(`{${metadata}}`))
-    } catch (e) {
+    function errReturn() {
+        console.error("Could not successfully decode metadata string")
         return null
     }
 
-    if (!data) return null
+    try {
+        data = JSON.parse(`{${Buffer.from(bs58.decode(metadata)).toString()}}`)
+    } catch (e) {
+        return errReturn()
+    }
+
+    if (!data) return errReturn()
 
     if (data.t !== 'YouUp') {
-        return null
+        return errReturn()
     }
 
     delete data.t
     return data as YouUpSchema
-
 }
 
 export function parsePlaylistObject(playlist: PlaylistObject): YouUpPlaylistObject {
@@ -107,6 +127,7 @@ export function parsePlaylistObject(playlist: PlaylistObject): YouUpPlaylistObje
         // Get position of next space, or very end if there is no space
         Math.max(0, playlist.description.indexOf(' ', tagIdx + SEARCH_TAG.length)) || playlist.description.length
     )))) {
+        console.info(`YouUp data for playlist ${playlist.id} set to default`)
         data = defaults
     }
 

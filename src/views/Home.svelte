@@ -1,6 +1,8 @@
 <script>
   import {
+    Tile,
     Button,
+    ButtonSet,
     TextInput,
     TextInputSkeleton,
   } from "carbon-components-svelte";
@@ -11,22 +13,17 @@
   import { asPlaylistObjectArray } from "../types/SvelteCompat";
 
   import { attach as attachDragOverlay, registerDragListener } from "../drag/";
-  import UploadDialog from "./UploadDialog";
-  console.log($authStore);
-
-  function spawnWindow(path, seedData = {}) {
-    let windowID = uid(20);
-    const emit = pub(windowID);
-    emit("seed", "hello!");
-
-    // TODO: Create secret pair for state, maybe pass in port?
-
-    window.open(
-      youtube.createAuthChallenge(),
-      null,
-      "directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no"
-    );
-  }
+  import createPlaylistDialog from "./PlaylistDialogLauncher";
+  import UploadDialog from "./_UploadDialog.svelte";
+  import EditTemplate from "./_EditTemplate.svelte";
+  import {
+    updatePlaylistInternal,
+    regeneratePlaylistMetadata,
+    sanitiseText,
+  } from "../YouUpPlaylistObject";
+  import dayjs from "dayjs";
+  import dayjs_relativeTime from "dayjs/plugin/relativeTime";
+  dayjs.extend(dayjs_relativeTime);
 
   youtube.init().then(() => {
     console.log("YouTube API Loaded");
@@ -41,7 +38,36 @@
 
   function openUploadModal(playlist) {
     console.log(playlist);
-    UploadDialog.createDialog(playlist);
+    createPlaylistDialog(UploadDialog, playlist);
+  }
+
+  function openEditModal(playlist) {
+    createPlaylistDialog(EditTemplate, playlist).then(async (resp) => {
+      if (!resp) return;
+      const { detail } = resp;
+      let newDescription = regeneratePlaylistMetadata(
+        updatePlaylistInternal(playlist, {
+          titleFormat: detail.title,
+          descriptionFormat: detail.description,
+          defaultPrivacy: detail.privacy,
+        })
+      );
+      playlist.description = newDescription;
+
+      await youtube.withYoutube.updateRemotePlaylist(
+        playlist,
+        newDescription
+      );
+
+      // Reassign playlist array to cause UI update
+      // Or maybe use the Svelte #key block?
+      let idx = playlists.indexOf(playlist);
+      playlists = [
+        ...playlists.slice(0, idx),
+        playlist,
+        ...playlists.slice(idx + 1),
+      ];
+    });
   }
 
   let playlists = [];
@@ -55,14 +81,20 @@
 <div id="info" />
 <br />
 <div>
-  {JSON.stringify($authStore)}
+  {#if $authStore}
+    Current access token expires {dayjs().to($authStore.expiry)}
+  {/if}
   <!-- <a href="#" on:click={() => controller.openDocs()}>Docs</a> &middot;
   <a href="#" on:click={() => controller.openTutorial()}>Tutorial</a> &middot; -->
 </div>
 
 <Button
   on:click={() => {
-    spawnWindow("upload", { data: "aaf" });
+    window.open(
+      youtube.createAuthChallenge(),
+      null,
+      "directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no"
+    );
   }}>Authenticate</Button
 >
 
@@ -79,29 +111,35 @@
   }}>Open</Button
 > -->
 
-<div class="cards">
-  {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-    <div
-      use:attachDragOverlay={function (f) {
+<!-- use:attachDragOverlay={function (f) {
         console.log("select ", f);
-      }}
-      on:click={() => openUploadModal(playlist)}
-    >
-      <h4>{playlist.title} ({playlist.itemCount})</h4>
-      <p>{playlist.description}</p>
+      }} -->
+<div class="cards">
+  {#key playlists}
+    {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
+      <div on:click|self={() => openUploadModal(playlist)}>
+        <h4>{playlist.title} ({playlist.itemCount})</h4>
+        <p>{sanitiseText(playlist.description)}</p>
 
-      <img
-        src={(
-          playlist.thumbnails.maxres ||
-          playlist.thumbnails.standard ||
-          playlist.thumbnails.high ||
-          playlist.thumbnails.medium ||
-          playlist.thumbnails.default
-        )?.url}
-        alt="playlist thumbnail"
-      />
-    </div>
-  {/each}
+        <img
+          src={(
+            playlist.thumbnails.maxres ||
+            playlist.thumbnails.standard ||
+            playlist.thumbnails.high ||
+            playlist.thumbnails.medium ||
+            playlist.thumbnails.default
+          )?.url}
+          alt="playlist thumbnail"
+        />
+        <ButtonSet>
+          <Button size={"small"} on:click={() => openEditModal(playlist)}>
+            abc
+          </Button>
+          <Button size={"small"}>def</Button>
+        </ButtonSet>
+      </div>
+    {/each}
+  {/key}
 </div>
 
 <style>
