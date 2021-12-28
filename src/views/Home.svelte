@@ -93,7 +93,7 @@
   <title>YouUp</title>
 </svelte:head>
 
-<h1>NeutralinoJs</h1>
+<h1>YouUp Video Uploader</h1>
 <div id="info" />
 <br />
 <div>
