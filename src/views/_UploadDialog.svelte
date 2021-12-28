@@ -62,7 +62,7 @@
           style="resize: none"
         />
 
-        <Select labelText="Visiblity" bind:value={data.privacy}>
+        <Select labelText="Visiblity" bind:selected={data.privacy}>
           <SelectItem value="public" text="Public" />
           <SelectItem value="unlisted" text="Unlisted" />
           <SelectItem value="private" text="Private" />

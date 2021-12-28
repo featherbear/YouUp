@@ -22,7 +22,7 @@
   let data = {
     title: parsedPlaylist.YouUp?.titleFormat,
     description: parsedPlaylist.YouUp?.descriptionFormat,
-    privacy: parsedPlaylist.YouUp?.defaultPrivacy
+    privacy: parsedPlaylist.YouUp?.defaultPrivacy,
   };
 
   let formReady = false;
@@ -66,7 +66,7 @@
             style="resize: none"
           />
 
-          <Select labelText="Default Visiblity" bind:value={data.privacy}>
+          <Select labelText="Default Visiblity" bind:selected={data.privacy}>
             <SelectItem value="public" text="Public" />
             <SelectItem value="unlisted" text="Unlisted" />
             <SelectItem value="private" text="Private" />
