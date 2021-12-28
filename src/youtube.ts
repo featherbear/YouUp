@@ -63,12 +63,6 @@ withYoutube.updateRemotePlaylist = function (playlist: PlaylistObject, descripti
 }
 
 withYoutube.uploadVideo = function (file: File) {
-    // return (async function () {
-    //     console.log(file);
-    //     console.log((await file.text()).length)
-    //     console.log((await file.arrayBuffer()))
-    //     console.log(new Uint8Array(await file.arrayBuffer()))
-    // })();
 
     return withYoutube(async (c) => {
         // https://developers.google.com/youtube/v3/docs/videos/insert
@@ -82,22 +76,35 @@ withYoutube.uploadVideo = function (file: File) {
             return
         }
 
-        let sessionURL = "";
-        if (!sessionURL) {
-            sessionURL = (await gapi.client.request(
-                {
-                    path: 'https://www.googleapis.com/upload/youtube/v3/videos',
-                    method: "POST",
-                    params: {
-                        uploadType: 'resumable',
-                        part: 'id,snippet,status'
-                    },
-                    headers: {
-                        'Content-Type': 'application/json; charset=UTF-8',
-                        'X-Upload-Content-Length': file.size,
-                        'x-Upload-Content-Type': file.type
-                    },
-                    body: JSON.stringify({
+        const boundaryTag = "YouUp" + Math.trunc(new Date().getTime() / 1000)
+
+        // Some magic thing to turn a byte array to a string that retains nulls???
+        function Uint8ToString(u8a) {
+            var CHUNK_SZ = 0x8000;
+            var c = [];
+            for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
+                c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
+            }
+            let str = c.join("");
+            return str
+        }
+
+        let resp: GoogleApiYouTubeVideoResource = await gapi.client.request(
+            {
+                path: 'https://www.googleapis.com/upload/youtube/v3/videos',
+                method: "POST",
+                params: {
+                    uploadType: 'multipart',
+                    part: 'id,snippet,status',
+                    alt: 'json',
+                },
+                headers: {
+                    'content-type': `multipart/related; boundary="${boundaryTag}"`,
+                    accept: 'application/json',
+                },
+                body: [
+                    `--${boundaryTag}\nContent-Type: application/json\nMIME-Version: 1.0\n\n`,
+                    JSON.stringify({
                         snippet: {
                             title: "test video",
                             description: "this is a test video"
@@ -105,78 +112,17 @@ withYoutube.uploadVideo = function (file: File) {
                         status: {
                             privacyStatus: 'unlisted'
                         }
-
-                    })
-                }
-            )).headers['location']
-            console.log('Created video, URL is', sessionURL);
-        } else {
-            if (!sessionURL) throw new Error("No session URL!")
-            console.log("Using session URL", sessionURL);
-        }
-
-
-        let currentStatus = await gapi.client.request({
-            path: sessionURL,
-            method: "PUT",
-            headers: {
-                'Content-Range': `bytes */${file.size}`,
-            },
-        }).then((r) => r, r => r)
-
-        console.log('Got current status', currentStatus);
-        if (currentStatus.status == 308) {
-            let nextByte = 0;
-            if (Number.isNaN((nextByte = Math.trunc(currentStatus.headers['range']?.split("-")?.[1]) + 1))) nextByte = 0
-
-            console.log(file);
-            let body = file.slice(nextByte, file.size, file.type)
-            console.log(`Start upload from byte ${nextByte}`, body);
-
-            function Uint8ToString(u8a) {
-                var CHUNK_SZ = 0x8000;
-                var c = [];
-                for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
-                    c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
-                }
-                let str = c.join("");
-                return str
+                    }),
+                    '\n',
+                    `--${boundaryTag}\nContent-Type: ${file.type}\nMIME-Version: 1.0\nContent-Transfer-Encoding: base64\n\n`,
+                    btoa(Uint8ToString(new Uint8Array(await file.arrayBuffer()))),
+                    '\n',
+                    `--${boundaryTag}--\n`
+                ].join('')
             }
+        ) as any
 
-            let arrBuff = await body.arrayBuffer()
-            console.log('b', arrBuff.byteLength);
-
-            let int8 = new Uint8Array(arrBuff)
-            console.log('arr', int8.length);
-
-
-            let str = Uint8ToString(int8)
-            console.log('str', str.length);
-
-            //
-            function breakPoint() {
-
-            }
-            breakPoint();
-            //
-
-            gapi.client.request({
-                method: "PUT",
-                path: sessionURL,
-                // FIXME: Need to send binary data
-                body: body,
-                headers: {
-                    'Content-Type': file.type,
-                    'Content-Length': body.size,
-                    'Content-Range': `bytes ${nextByte}-${file.size - 1}/${file.size}`
-                }
-
-            }).then(function (a) {
-                console.log('success', a);
-            }, function fail(a) {
-                console.log('fail', a);
-            })
-        }
+        return resp
     })
 }
 
