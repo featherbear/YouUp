@@ -21,6 +21,9 @@
     regeneratePlaylistMetadata,
     sanitiseText,
   } from "../YouUpPlaylistObject";
+  import dayjs from "dayjs";
+  import dayjs_relativeTime from "dayjs/plugin/relativeTime";
+  dayjs.extend(dayjs_relativeTime);
 
   youtube.init().then(() => {
     console.log("YouTube API Loaded");
@@ -78,7 +81,9 @@
 <div id="info" />
 <br />
 <div>
-  {JSON.stringify($authStore)}
+  {#if $authStore}
+    Current access token expires {dayjs().to($authStore.expiry)}
+  {/if}
   <!-- <a href="#" on:click={() => controller.openDocs()}>Docs</a> &middot;
   <a href="#" on:click={() => controller.openTutorial()}>Tutorial</a> &middot; -->
 </div>
