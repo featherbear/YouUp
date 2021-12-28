@@ -1,26 +1,8 @@
-// https://www.googleapis.com/auth/youtube	Manage your YouTube account
-// https://www.googleapis.com/auth/youtube.channel-memberships.creator	See a list of your current active channel members, their current level, and when they became a member
-// https://www.googleapis.com/auth/youtube.force-ssl	See, edit, and permanently delete your YouTube videos, ratings, comments and captions
-// https://www.googleapis.com/auth/youtube.readonly	View your YouTube account
-// https://www.googleapis.com/auth/youtube.upload	Manage your YouTube videos
-// https://www.googleapis.com/auth/youtubepartner	View and manage your assets and associated content on YouTube
-// https://www.googleapis.com/auth/youtubepartner-channel-audit	View private information of your YouTube channel relevant during the audit process with a YouTube partner
-
 import { uid } from "uid";
 import { AUTH_CALLBACK_URL, AUTH_CLIENT_ID, AUTH_STORAGE_KEY } from "./consts/auth";
 
-
-// let uri = oauthClient.generateAuthUrl({
-//     access_type: 'online',
-//      scope: [
-//         
-
-//     ]
-// })
-
-// console.log(uri);
-
 // https://developers.googleblog.com/2021/08/gsi-jsweb-deprecation.html
+
 import { readable, Subscriber } from "svelte/store";
 import type AuthObject from "./types/AuthObject";
 import { getPlaylistsSTUB } from "./STUB";
@@ -82,110 +64,65 @@ withYoutube.updateRemotePlaylist = function (playlist: PlaylistObject, descripti
 
 withYoutube.uploadVideo = function (file: File) {
 
-
-    // return (async function () {
-    //     console.log(file);
-    //     console.log((await file.text()).length)
-    //     console.log((await file.arrayBuffer()))
-    //     console.log(new Uint8Array(await file.arrayBuffer()))
-    // })();
-
     return withYoutube(async (c) => {
         // https://developers.google.com/youtube/v3/docs/videos/insert
+
         // As of 25th December 2021 (Happy birthday Jesus)
         // - Maximum file size: 128GB
         // - Accepted Media MIME types: video/*, application/octet-stream
 
-        if (file.name != "ABCDEFGH.mov") {
+        if (!file.name.startsWith("kazzoooo.mov")) {
             console.log('rejected for wrong file');
             return
         }
 
-        await gapi.client.request(
+        const boundaryTag = "YouUp" + Math.trunc(new Date().getTime() / 1000)
+
+        // Some magic thing to turn a byte array to a string that retains nulls???
+        function Uint8ToString(u8a) {
+            var CHUNK_SZ = 0x8000;
+            var c = [];
+            for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
+                c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
+            }
+            let str = c.join("");
+            return str
+        }
+
+        let resp: GoogleApiYouTubeVideoResource = await gapi.client.request(
             {
                 path: 'https://www.googleapis.com/upload/youtube/v3/videos',
                 method: "POST",
                 params: {
-                    uploadType: 'resumable',
-                    part: 'id,snippet,status'
+                    uploadType: 'multipart',
+                    part: 'id,snippet,status',
+                    alt: 'json',
                 },
                 headers: {
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'X-Upload-Content-Length': file.size,
-                    'x-upload-content-type': file.type
+                    'content-type': `multipart/related; boundary="${boundaryTag}"`,
+                    accept: 'application/json',
                 },
-                body: JSON.stringify({
-                    snippet: {
-                        title: "test video",
-                        description: "this is a test video"
-                    },
-                    status: {
-                        privacyStatus: 'unlisted'
-                    }
-
-                })
-            }
-        ).then(function (c) {
-            console.log('Created video', c);
-
-            let reqURL = c.headers['location']
-
-            async function response(f) {
-                console.log('got status', f);
-                if (f.status == 308) {
-                    let done;
-                    if (Number.isNaN((done = Math.trunc(f.headers.range?.split("-")?.[1])))) {
-                        done = -1
-                    }
-
-                    let body = file.slice(done + 1, null, file.type)
-
-                    // 10k quota
-                    console.log('start upload');
-                    console.log(body);
-
-                    function Uint8ToString(u8a) {
-                        var CHUNK_SZ = 0x8000;
-                        var c = [];
-                        for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
-                            c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
+                body: [
+                    `--${boundaryTag}\nContent-Type: application/json\nMIME-Version: 1.0\n\n`,
+                    JSON.stringify({
+                        snippet: {
+                            title: "test video",
+                            description: "this is a test video"
+                        },
+                        status: {
+                            privacyStatus: 'unlisted'
                         }
-                        return c.join("");
-                    }
-
-                    gapi.client.request({
-                        method: "PUT",
-                        path: reqURL,
-                        // body: `--random123\nContent-Type: ${file.type}\nMIME-Version: 1.0\nContent-Transfer-Encoding: base64\n\n` + btoa(Uint8ToString(new Uint8Array(await body.arrayBuffer()))) + '\n--random123--\n',
-                        body: new Uint8Array(await file.arrayBuffer()),
-                        headers: {
-                            // 'Content-Type': file.type,
-                            // 'content-type': 'multipart/related; boundary="random123"',
-                            'Content-Length': body.size,
-                            'Content-Range': `bytes ${done + 1}-${file.size - 1}/${file.size}`
-                        }
-
-                    }).then(function (a) {
-                        console.log('success', a);
-                    }, function fail(a) {
-                        console.log('fail', a);
-                    })
-                }
+                    }),
+                    '\n',
+                    `--${boundaryTag}\nContent-Type: ${file.type}\nMIME-Version: 1.0\nContent-Transfer-Encoding: base64\n\n`,
+                    btoa(Uint8ToString(new Uint8Array(await file.arrayBuffer()))),
+                    '\n',
+                    `--${boundaryTag}--\n`
+                ].join('')
             }
+        ) as any
 
-
-            gapi.client.request({
-                path: reqURL,
-                method: "PUT",
-                headers: {
-                    'Content-Length': 0,
-                    'Content-Range': `bytes */${file.size}`,
-                    'Accept-Encoding': 'deflate, br'
-                },
-            }).then(response, response)
-
-        })
-
+        return resp
     })
 }
 

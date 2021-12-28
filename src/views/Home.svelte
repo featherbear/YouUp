@@ -27,6 +27,7 @@
 
   youtube.init().then(() => {
     console.log("YouTube API Loaded");
+    doRequest();
     registerDragListener();
   });
 
@@ -39,6 +40,11 @@
   function openUploadModal(playlist) {
     console.log(playlist);
     createPlaylistDialog(UploadDialog, playlist);
+  }
+
+  function handleSelectFile(f) {
+    console.log(f);
+    youtube.withYoutube.uploadVideo(f);
   }
 
   function openEditModal(playlist) {
@@ -54,10 +60,7 @@
       );
       playlist.description = newDescription;
 
-      await youtube.withYoutube.updateRemotePlaylist(
-        playlist,
-        newDescription
-      );
+      await youtube.withYoutube.updateRemotePlaylist(playlist, newDescription);
 
       // Reassign playlist array to cause UI update
       // Or maybe use the Svelte #key block?
@@ -117,7 +120,7 @@
 <div class="cards">
   {#key playlists}
     {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-      <div on:click|self={() => openUploadModal(playlist)}>
+      <div use:attachDragOverlay={handleSelectFile}>
         <h4>{playlist.title} ({playlist.itemCount})</h4>
         <p>{sanitiseText(playlist.description)}</p>
 
@@ -133,9 +136,11 @@
         />
         <ButtonSet>
           <Button size={"small"} on:click={() => openEditModal(playlist)}>
-            abc
+            Edit
           </Button>
-          <Button size={"small"}>def</Button>
+          <Button size={"small"} on:click={() => openUploadModal(playlist)}
+            >Upload</Button
+          >
         </ButtonSet>
       </div>
     {/each}
