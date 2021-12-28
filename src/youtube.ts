@@ -65,8 +65,22 @@ export function withYoutube<T = any>(func: (client: YoutubeServiceClient) => Pro
     return func(gapi.client.youtube)
 }
 
-withYoutube.uploadVideo = async function (file: File) {
-    function breakHereHah() {
+withYoutube.updateRemotePlaylist = function (playlist: PlaylistObject, description?: string) {
+    withYoutube(async (c) => {
+        return c.playlists.update({
+            part: 'id,snippet',
+            ...{
+                id: playlist.id,
+                snippet: {
+                    title: playlist.title,
+                    description: description ?? playlist.description
+                }
+            } as GoogleApiYouTubePlaylistResource
+        })
+    })
+}
+
+withYoutube.uploadVideo = function (file: File) {
 
     }
     breakHereHah();
