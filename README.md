@@ -1,16 +1,13 @@
-# neutralinojs-minimal
+# You Up
 
-The simplest template for a Neutralinojs app. It's possible to use your favorite frontend framework using the following steps.
+A YouTube video uploader tool - powered by ~machine learning and block chain~ template variables so that I can have some damn consistency in my playlist video naming conventions...
 
-- Create a new project using your favorite frontend framework. (Eg: `ng new --directory .`)
-- Make the frontend framework's build path and Neutralino config's `url`, `resourcesPath` the same.
-- Build with the correct base href.
+---
 
-# Icon credits
+Coupled with Neutralino.js, as this was meant to be a standalone desktop application but now it's just a glorified web server that your native browser connects to. To be honest I could just make this an SPA and put it on GitHub pages - In fact that's what I'll probably do.
 
-- `trayIcon.png` - Made by [Freepik](https://www.freepik.com) and downloaded from [Flaticon](https://www.flaticon.com)
+---
 
+# License
 
-https://developers.google.com/youtube/v3/guides/auth/client-side-web-apps#oauth-2.0-endpoints_1
-https://developers.google.com/youtube/v3/quickstart/js
-https://developers.google.com/youtube/v3/docs/videos/insert
+[WTFPL](http://www.wtfpl.net/)
