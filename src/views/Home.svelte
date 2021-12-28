@@ -21,22 +21,6 @@
     regeneratePlaylistMetadata,
   } from "../YouUpPlaylistObject";
 
-  console.log($authStore);
-
-  function spawnWindow(path, seedData = {}) {
-    let windowID = uid(20);
-    const emit = pub(windowID);
-    emit("seed", "hello!");
-
-    // TODO: Create secret pair for state, maybe pass in port?
-
-    window.open(
-      youtube.createAuthChallenge(),
-      null,
-      "directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no"
-    );
-  }
-
   youtube.init().then(() => {
     console.log("YouTube API Loaded");
     registerDragListener();
@@ -101,7 +85,11 @@
 
 <Button
   on:click={() => {
-    spawnWindow("upload", { data: "aaf" });
+    window.open(
+      youtube.createAuthChallenge(),
+      null,
+      "directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no"
+    );
   }}>Authenticate</Button
 >
 
