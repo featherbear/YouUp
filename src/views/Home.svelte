@@ -19,6 +19,7 @@
   import {
     updatePlaylistInternal,
     regeneratePlaylistMetadata,
+    sanitiseText,
   } from "../YouUpPlaylistObject";
 
   youtube.init().then(() => {
@@ -110,29 +111,31 @@
         console.log("select ", f);
       }} -->
 <div class="cards">
-  {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-    <div on:click|self={() => openUploadModal(playlist)}>
-      <h4>{playlist.title} ({playlist.itemCount})</h4>
-      <p>{playlist.description}</p>
+  {#key playlists}
+    {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
+      <div on:click|self={() => openUploadModal(playlist)}>
+        <h4>{playlist.title} ({playlist.itemCount})</h4>
+        <p>{sanitiseText(playlist.description)}</p>
 
-      <img
-        src={(
-          playlist.thumbnails.maxres ||
-          playlist.thumbnails.standard ||
-          playlist.thumbnails.high ||
-          playlist.thumbnails.medium ||
-          playlist.thumbnails.default
-        )?.url}
-        alt="playlist thumbnail"
-      />
-      <ButtonSet>
-        <Button size={"small"} on:click={() => openEditModal(playlist)}>
-          abc
-        </Button>
-        <Button size={"small"}>def</Button>
-      </ButtonSet>
-    </div>
-  {/each}
+        <img
+          src={(
+            playlist.thumbnails.maxres ||
+            playlist.thumbnails.standard ||
+            playlist.thumbnails.high ||
+            playlist.thumbnails.medium ||
+            playlist.thumbnails.default
+          )?.url}
+          alt="playlist thumbnail"
+        />
+        <ButtonSet>
+          <Button size={"small"} on:click={() => openEditModal(playlist)}>
+            abc
+          </Button>
+          <Button size={"small"}>def</Button>
+        </ButtonSet>
+      </div>
+    {/each}
+  {/key}
 </div>
 
 <style>

@@ -5,6 +5,12 @@ import bs58 from 'base-58'
 import { Buffer } from 'buffer/'
 
 const SEARCH_TAG = "==YOUUP=="
+const B58_CHARSET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+const metadataRegexp = new RegExp(`${SEARCH_TAG}[${B58_CHARSET}]*`, 'g')
+
+export function sanitiseText(input: string) {
+    return input?.replace(metadataRegexp, '') ?? ""
+}
 
 type InternalYouUpSchema = {
     t: 'YouUp'
@@ -32,6 +38,8 @@ export function regeneratePlaylistMetadata(playlist: YouUpPlaylistObject) {
     let newDescription = playlist.description
     const tagIdx = playlist.description.indexOf(SEARCH_TAG)
     const newPayload = createMetadata(playlist)
+
+    //  TODO: Integrate regexp searcher?
 
     if (tagIdx === -1) {
         // If not found - add at the end
