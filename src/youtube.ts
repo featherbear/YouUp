@@ -7,6 +7,7 @@ import { readable, Subscriber } from "svelte/store";
 import type AuthObject from "./types/AuthObject";
 import { getPlaylistsSTUB } from "./STUB";
 import type PlaylistObject from "./types/PlaylistObject";
+import type BasicYouTubeVideo from "./types/BasicYouTubeVideo";
 
 let _setAuthStore: Subscriber<AuthObject>
 let _expiryTimeout: NodeJS.Timeout
@@ -62,7 +63,7 @@ withYoutube.updateRemotePlaylist = function (playlist: PlaylistObject, descripti
     })
 }
 
-withYoutube.uploadVideo = function (file: File) {
+withYoutube.uploadVideo = function (file: File, detail: BasicYouTubeVideo) {
 
     return withYoutube(async (c) => {
         // https://developers.google.com/youtube/v3/docs/videos/insert
@@ -70,11 +71,6 @@ withYoutube.uploadVideo = function (file: File) {
         // As of 25th December 2021 (Happy birthday Jesus)
         // - Maximum file size: 128GB
         // - Accepted Media MIME types: video/*, application/octet-stream
-
-        if (!file.name.startsWith("kazzoooo.mov")) {
-            console.log('rejected for wrong file');
-            return
-        }
 
         const boundaryTag = "YouUp" + Math.trunc(new Date().getTime() / 1000)
 
@@ -106,11 +102,11 @@ withYoutube.uploadVideo = function (file: File) {
                     `--${boundaryTag}\nContent-Type: application/json\nMIME-Version: 1.0\n\n`,
                     JSON.stringify({
                         snippet: {
-                            title: "test video",
-                            description: "this is a test video"
+                            title: detail.title,
+                            description: detail.description
                         },
                         status: {
-                            privacyStatus: 'unlisted'
+                            privacyStatus: detail.privacy
                         }
                     }),
                     '\n',
@@ -227,7 +223,6 @@ export function createAuthChallenge(callback?: (response: AuthObject) => void) {
     let interval = setInterval(function () {
         let response;
         if ((response = localStorage.getItem(`challenge-${id}`))) {
-            console.log('got a response');
             try {
                 response = JSON.parse(response)
 
@@ -247,11 +242,9 @@ export function createAuthChallenge(callback?: (response: AuthObject) => void) {
                 );
                 _setAuthStore(authObject)
 
-                console.log('fin');
-
                 callback?.(authObject)
             } catch {
-                console.log('failed response');
+                console.log('Failed auth challenge response');
             }
         }
     }, 500)

@@ -175,6 +175,7 @@ export function parsePlaylistObject(playlist: PlaylistObject): YouUpPlaylistObje
         }
     }
 
+    console.info("Returning YouUp playlist", YouUpPlaylist)
     return YouUpPlaylist
 }
 

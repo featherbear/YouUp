@@ -37,14 +37,27 @@
     });
   }
 
-  function openUploadModal(playlist) {
-    console.log(playlist);
-    createPlaylistDialog(UploadDialog, playlist);
-  }
+  let filePickerElem;
 
-  function handleSelectFile(f) {
-    console.log(f);
-    youtube.withYoutube.uploadVideo(f);
+  function handleSelectFile(f, playlist) {
+    createPlaylistDialog(UploadDialog, playlist, { file: f }).then(
+      async (resp) => {
+        if (!resp) return;
+        const { detail } = resp;
+
+        youtube.withYoutube(async (c) => {
+          const video = await youtube.withYoutube.uploadVideo(f, detail);
+          await c.playlistItems.insert({
+            part: "snippet",
+            snippet: {
+              playlistId: playlist.id,
+              resourceId: video.id,
+            },
+          });
+          alert(":)");
+        });
+      }
+    );
   }
 
   function openEditModal(playlist) {
@@ -114,13 +127,23 @@
   }}>Open</Button
 > -->
 
-<!-- use:attachDragOverlay={function (f) {
-        console.log("select ", f);
-      }} -->
+<input
+  type="file"
+  bind:this={filePickerElem}
+  on:change={() => {
+    let playlist = filePickerElem.target;
+    filePickerElem.target = null;
+    if (!playlist) return;
+    handleSelectFile(filePickerElem.files[0], playlist);
+  }}
+  accept="video/*"
+  style="display:none"
+/>
+
 <div class="cards">
   {#key playlists}
     {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
-      <div use:attachDragOverlay={handleSelectFile}>
+      <div use:attachDragOverlay={(f) => handleSelectFile(f, playlist)}>
         <h4>{playlist.title} ({playlist.itemCount})</h4>
         <p>{sanitiseText(playlist.description)}</p>
 
@@ -134,12 +157,17 @@
           )?.url}
           alt="playlist thumbnail"
         />
+
         <ButtonSet>
           <Button size={"small"} on:click={() => openEditModal(playlist)}>
             Edit
           </Button>
-          <Button size={"small"} on:click={() => openUploadModal(playlist)}
-            >Upload</Button
+          <Button
+            size={"small"}
+            on:click={() => {
+              filePickerElem.target = playlist;
+              filePickerElem.click();
+            }}>Upload</Button
           >
         </ButtonSet>
       </div>

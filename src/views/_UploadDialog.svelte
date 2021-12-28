@@ -2,20 +2,29 @@
   // Do not use this component directly
   // Use the .createDialog(playlist: Playlist) method
 
-  import { TextInput, Modal, Form } from "carbon-components-svelte";
+  import {
+    TextInput,
+    TextArea,
+    Select,
+    SelectItem,
+    Modal,
+    Form,
+  } from "carbon-components-svelte";
   import { asPlaylistObject } from "../types/SvelteCompat";
-  import { createEventDispatcher, onMount } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import { parsePlaylistObject } from "../YouUpPlaylistObject";
 
   const dispatch = createEventDispatcher();
 
   export let playlist;
+  export let file;
+
   let parsedPlaylist = parsePlaylistObject(playlist);
-  console.log(parsedPlaylist);
 
   let data = {
-    title: "",
-    description: "",
+    title: parsedPlaylist.YouUp.generateTitle(file),
+    description: parsedPlaylist.YouUp.generateDescription(file),
+    privacy: parsedPlaylist.YouUp.defaultPrivacy
   };
 
   let formReady = false;
@@ -23,6 +32,7 @@
 
   function submit() {
     if (!formReady) return;
+    dispatch("submit", data);
   }
 </script>
 
@@ -45,11 +55,18 @@
           bind:value={data.title}
         />
 
-        <TextInput
+        <TextArea
           labelText="Description"
-          placeholder="Enter video description..."
+          placeholder="Enter video description"
           bind:value={data.description}
+          style="resize: none"
         />
+
+        <Select labelText="Visiblity" bind:value={data.privacy}>
+          <SelectItem value="public" text="Public" />
+          <SelectItem value="unlisted" text="Unlisted" />
+          <SelectItem value="private" text="Private" />
+        </Select>
       </Form>
     </Modal>
   {/await}
