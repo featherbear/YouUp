@@ -49,12 +49,11 @@
           defaultPrivacy: detail.privacy,
         })
       );
+      playlist.description = newDescription;
 
-      console.log(
-        await youtube.withYoutube.updatePlaylistDescription(
-          playlist,
-          newDescription
-        )
+      await youtube.withYoutube.updateRemotePlaylist(
+        playlist,
+        newDescription
       );
 
       // Reassign playlist array to cause UI update
