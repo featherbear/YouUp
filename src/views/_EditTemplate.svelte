@@ -6,6 +6,7 @@
     TextInput,
     Modal,
     Form,
+    Button,
     TextArea,
     Select,
     SelectItem,
@@ -72,6 +73,8 @@
             <SelectItem value="unlisted" text="Unlisted" />
             <SelectItem value="private" text="Private" />
           </Select>
+
+          <Button kind="tertiary">Load data from playlist item</Button>
         </Form>
         <section class="preview">
           <Form>

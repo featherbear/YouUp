@@ -1,6 +1,8 @@
 <script>
   import {
+    Tile,
     Button,
+    ButtonSet,
     TextInput,
     TextInputSkeleton,
   } from "carbon-components-svelte";
@@ -11,7 +13,10 @@
   import { asPlaylistObjectArray } from "../types/SvelteCompat";
 
   import { attach as attachDragOverlay, registerDragListener } from "../drag/";
-  import UploadDialog from "./UploadDialog";
+import createPlaylistDialog from "./PlaylistDialogLauncher";
+import UploadDialog from "./_UploadDialog.svelte";
+import EditTemplate from "./_EditTemplate.svelte";
+
   console.log($authStore);
 
   function spawnWindow(path, seedData = {}) {
@@ -41,7 +46,11 @@
 
   function openUploadModal(playlist) {
     console.log(playlist);
-    UploadDialog.createDialog(playlist);
+    createPlaylistDialog(UploadDialog, playlist)
+  }
+
+  function openEditModal(playlist) {
+    createPlaylistDialog(EditTemplate, playlist)
   }
 
   let playlists = [];
@@ -79,13 +88,13 @@
   }}>Open</Button
 > -->
 
+      <!-- use:attachDragOverlay={function (f) {
+        console.log("select ", f);
+      }} -->
 <div class="cards">
   {#each asPlaylistObjectArray(playlists) as playlist (playlist.id)}
     <div
-      use:attachDragOverlay={function (f) {
-        console.log("select ", f);
-      }}
-      on:click={() => openUploadModal(playlist)}
+      on:click|self={() => openUploadModal(playlist)}
     >
       <h4>{playlist.title} ({playlist.itemCount})</h4>
       <p>{playlist.description}</p>
@@ -100,6 +109,15 @@
         )?.url}
         alt="playlist thumbnail"
       />
+      <ButtonSet>
+        <Button
+          size={"small"}
+          on:click={() => openEditModal(playlist)}
+        >
+          abc
+        </Button>
+        <Button size={"small"}>def</Button>
+      </ButtonSet>
     </div>
   {/each}
 </div>
