@@ -1,6 +1,9 @@
 import type PlaylistObject from "./types/PlaylistObject";
 import dayjs from 'dayjs'
 
+import bs58 from 'base-58'
+import { Buffer } from 'buffer/'
+
 const SEARCH_TAG = "==YOUUP=="
 
 type InternalYouUpSchema = {
@@ -62,18 +65,19 @@ export function createMetadata(playlist: YouUpPlaylistObject) {
     }: { [key in keyof YouUpSchema]: any } = playlist.YouUp
 
     return JSON.stringify({
+    return bs58.encode(Buffer.from(JSON.stringify({
         t: 'YouUp',
         titleFormat,
         descriptionFormat,
         defaultPrivacy
-    }).slice(1, -1)
+    }).slice(1, -1).replace(/=*$/g, '')))
 }
 
 function parseMetadata(metadata: string) {
     let data: InternalYouUpSchema
 
     try {
-        data = JSON.parse(atob(`{${metadata}}`))
+        data = JSON.parse(Buffer.from(bs58.decode(`{${metadata}}`)).toString())
     } catch (e) {
         return null
     }
