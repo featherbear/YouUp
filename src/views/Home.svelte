@@ -54,18 +54,32 @@
   }
 
   function openEditModal(playlist) {
-    createPlaylistDialog(EditTemplate, playlist).then((resp) => {
+    createPlaylistDialog(EditTemplate, playlist).then(async (resp) => {
       if (!resp) return;
       const { detail } = resp;
+      let newDescription = regeneratePlaylistMetadata(
+        updatePlaylistInternal(playlist, {
+          titleFormat: detail.title,
+          descriptionFormat: detail.description,
+          defaultPrivacy: detail.privacy,
+        })
+      );
+
       console.log(
-        regeneratePlaylistMetadata(
-          updatePlaylistInternal(playlist, {
-            titleFormat: detail.title,
-            descriptionFormat: detail.description,
-            defaultPrivacy: detail.privacy,
-          })
+        await youtube.withYoutube.updatePlaylistDescription(
+          playlist,
+          newDescription
         )
       );
+
+      // Reassign playlist array to cause UI update
+      // Or maybe use the Svelte #key block?
+      let idx = playlists.indexOf(playlist);
+      playlists = [
+        ...playlists.slice(0, idx),
+        playlist,
+        ...playlists.slice(idx + 1),
+      ];
     });
   }
 
