@@ -65,6 +65,22 @@ export function withYoutube<T = any>(func: (client: YoutubeServiceClient) => Pro
     return func(gapi.client.youtube)
 }
 
+withYoutube.updatePlaylistDescription = function (playlist: PlaylistObject, description: string) {
+    withYoutube(async (c) => {
+        return c.playlists.update({
+            part: 'id,snippet',
+            RequestBody: JSON.stringify({
+                id: playlist.id,
+                snippet: {
+                    title: playlist.title,
+                    description
+                }
+            } as GoogleApiYouTubePlaylistResource)
+
+        })
+    })
+}
+
 withYoutube.uploadVideo = function (file: File) {
 
 
@@ -220,7 +236,7 @@ withYoutube.getPlaylists = function () {
  * @deprecated STUB STUB STUB
  * @returns TIS A MERE STUB
  */
-withYoutube.getPlaylists = async function() {
+withYoutube.getPlaylists = async function () {
     return getPlaylistsSTUB
 }
 
