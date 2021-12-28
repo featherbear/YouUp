@@ -30,7 +30,7 @@ export function updatePlaylistMetadata(playlist: YouUpPlaylistObject) {
 
     if (tagIdx === -1) {
         // If not found - add at the end
-        newDescription += '\n\n\n' + SEARCH_TAG + newPayload
+        newDescription = [newDescription, SEARCH_TAG + newPayload].join('\n\n\n')
     } else {
         let metadataIdxStart = tagIdx + SEARCH_TAG.length
         let metadataIdxEnd = Math.max(0, playlist.description.indexOf(' ', tagIdx + SEARCH_TAG.length)) || playlist.description.length // Get position of next space, or very end if there is no space
