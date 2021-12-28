@@ -117,7 +117,7 @@
 <Button
   on:click={() => {
     doRequest();
-  }}>Load Playlists</Button
+  }}>Refresh Playlists</Button
 >
 
 <!-- <Button
@@ -158,8 +158,12 @@
           alt="playlist thumbnail"
         />
 
-        <ButtonSet>
-          <Button size={"small"} on:click={() => openEditModal(playlist)}>
+        <ButtonSet style="margin-top: 10px;">
+          <Button
+            size={"small"}
+            on:click={() => openEditModal(playlist)}
+            style="width: 50%"
+          >
             Edit
           </Button>
           <Button
@@ -167,7 +171,8 @@
             on:click={() => {
               filePickerElem.target = playlist;
               filePickerElem.click();
-            }}>Upload</Button
+            }}
+            style="width: 50%">Upload</Button
           >
         </ButtonSet>
       </div>
@@ -184,6 +189,8 @@
     padding-left: 15px;
     padding-right: 15px;
     /* justify-content: center; */
+
+    margin-top: 10px;
   }
   @media (max-width: 540px) {
     .cards {
