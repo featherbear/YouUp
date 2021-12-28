@@ -23,7 +23,12 @@ export type YouUpPlaylistObject = PlaylistObject & {
     }
 }
 
-export function updatePlaylistMetadata(playlist: YouUpPlaylistObject) {
+export function updatePlaylistInternal(playlist: YouUpPlaylistObject, data: YouUpSchema) {
+    playlist.YouUp = { ...playlist.YouUp, ...data }
+    return playlist
+}
+
+export function regeneratePlaylistMetadata(playlist: YouUpPlaylistObject) {
     let newDescription = playlist.description
     const tagIdx = playlist.description.indexOf(SEARCH_TAG)
     const newPayload = createMetadata(playlist)
@@ -64,7 +69,6 @@ export function createMetadata(playlist: YouUpPlaylistObject) {
         defaultPrivacy,
     }: { [key in keyof YouUpSchema]: any } = playlist.YouUp
 
-    return JSON.stringify({
     return bs58.encode(Buffer.from(JSON.stringify({
         t: 'YouUp',
         titleFormat,

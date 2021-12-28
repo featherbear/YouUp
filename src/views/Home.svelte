@@ -50,7 +50,19 @@ import EditTemplate from "./_EditTemplate.svelte";
   }
 
   function openEditModal(playlist) {
-    createPlaylistDialog(EditTemplate, playlist)
+    createPlaylistDialog(EditTemplate, playlist).then((resp) => {
+      if (!resp) return;
+      const { detail } = resp;
+      console.log(
+        regeneratePlaylistMetadata(
+          updatePlaylistInternal(playlist, {
+            titleFormat: detail.title,
+            descriptionFormat: detail.description,
+            defaultPrivacy: detail.privacy,
+          })
+        )
+      );
+    });
   }
 
   let playlists = [];

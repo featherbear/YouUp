@@ -1,12 +1,8 @@
 <script>
-  // Do not use this component directly
-  // Use the .createDialog(playlist: Playlist) method
-
   import {
     TextInput,
     Modal,
     Form,
-    Button,
     TextArea,
     Select,
     SelectItem,
@@ -22,11 +18,11 @@
 
   export let playlist;
   let parsedPlaylist = parsePlaylistObject(playlist);
-  console.log(parsedPlaylist);
 
   let data = {
     title: parsedPlaylist.YouUp?.titleFormat,
     description: parsedPlaylist.YouUp?.descriptionFormat,
+    privacy: parsedPlaylist.YouUp?.defaultPrivacy
   };
 
   let formReady = false;
@@ -38,6 +34,8 @@
 
   function submit() {
     if (!formReady) return;
+    dispatch("submit", data);
+    return data;
   }
 </script>
 
@@ -50,7 +48,7 @@
       primaryButtonDisabled={!formReady}
       secondaryButtonText="Cancel"
       on:click:button--primary={() => submit()}
-      on:click:button--secondary={() => dispatch("destroy")}
+      on:click:button--secondary={() => dispatch("close")}
     >
       <div class="splitPane">
         <Form>
@@ -68,13 +66,11 @@
             style="resize: none"
           />
 
-          <Select labelText="Default Visiblity">
+          <Select labelText="Default Visiblity" bind:value={data.privacy}>
             <SelectItem value="public" text="Public" />
             <SelectItem value="unlisted" text="Unlisted" />
             <SelectItem value="private" text="Private" />
           </Select>
-
-          <Button kind="tertiary">Load data from playlist item</Button>
         </Form>
         <section class="preview">
           <Form>
