@@ -163,14 +163,14 @@ withYoutube.getPlaylists = function () {
         })
 }
 
-/**
- * STUB
- * @deprecated STUB STUB STUB
- * @returns TIS A MERE STUB
- */
-withYoutube.getPlaylists = async function () {
-    return getPlaylistsSTUB
-}
+// /**
+//  * STUB
+//  * @deprecated STUB STUB STUB
+//  * @returns TIS A MERE STUB
+//  */
+// withYoutube.getPlaylists = async function () {
+//     return getPlaylistsSTUB
+// }
 
 export function init() {
     return _init.call(_init) as ReturnType<typeof _init>;
