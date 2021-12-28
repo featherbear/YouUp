@@ -88,21 +88,25 @@ export function createMetadata(playlist: YouUpPlaylistObject) {
 function parseMetadata(metadata: string) {
     let data: InternalYouUpSchema
 
-    try {
-        data = JSON.parse(Buffer.from(bs58.decode(`{${metadata}}`)).toString())
-    } catch (e) {
+    function errReturn() {
+        console.error("Could not successfully decode metadata string")
         return null
     }
 
-    if (!data) return null
+    try {
+        data = JSON.parse(`{${Buffer.from(bs58.decode(metadata)).toString()}}`)
+    } catch (e) {
+        return errReturn()
+    }
+
+    if (!data) return errReturn()
 
     if (data.t !== 'YouUp') {
-        return null
+        return errReturn()
     }
 
     delete data.t
     return data as YouUpSchema
-
 }
 
 export function parsePlaylistObject(playlist: PlaylistObject): YouUpPlaylistObject {
@@ -123,6 +127,7 @@ export function parsePlaylistObject(playlist: PlaylistObject): YouUpPlaylistObje
         // Get position of next space, or very end if there is no space
         Math.max(0, playlist.description.indexOf(' ', tagIdx + SEARCH_TAG.length)) || playlist.description.length
     )))) {
+        console.info(`YouUp data for playlist ${playlist.id} set to default`)
         data = defaults
     }
 
